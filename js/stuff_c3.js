@@ -280,3 +280,16 @@ if (existingBars.length === 7) {
       });
   }
   
+  document.getElementById("freshRolloverBtn").addEventListener("click", () => {
+    const status = document.getElementById("rolloverStatus");
+    status.textContent = "⏳ Triggering...";
+    fetch("/force-rollover", { method: "POST" })
+      .then(() => {
+        status.textContent = "✅ Rollover complete";
+        setTimeout(() => (status.textContent = ""), 3000);
+      })
+      .catch(err => {
+        console.error("❌ Rollover failed:", err);
+        status.textContent = "❌ Rollover failed";
+      });
+  });
