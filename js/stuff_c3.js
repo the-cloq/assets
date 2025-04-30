@@ -22,7 +22,8 @@ function updateChart(data) {
     const minutes = todayVal % 60;
     const formatted = `${hours}h ${minutes}m`;
     staticValue.textContent = formatted;
-    localStorage.setItem('todayUptime', formatted);
+    //localStorage.setItem('todayUptime', formatted);
+    localStorage.removeItem('todayUptime');
 
     let isDragging = false;
     let startX = 0;
