@@ -46,20 +46,22 @@ if (existingBars.length === 7) {
     const percentHeight = Math.max(1, (val / scaleMax) * 100);
 
     if (val !== oldUptime) {
-      // Add bounce effect
       const bounceHeight = percentHeight * 1.05;
-
-      // Step 1: Slightly overshoot
+    
+      // Step 1: Slightly overshoot (even if shrinking)
       bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
       setTimeout(() => {
         bar.style.height = `${bounceHeight}%`;
-
-        // Step 2: Bounce back
+    
+        // Step 2: Bounce back or shrink
         setTimeout(() => {
           bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
           bar.style.height = `${percentHeight}%`;
         }, 300);
-      }, i * 100); // Wave effect: delay increases for each bar
+      }, i * 100);
+    } else {
+      // 🔁 Even if unchanged, make sure height stays in sync (e.g. after scaleMax change)
+      bar.style.height = `${percentHeight}%`;
     }
 
     // Always update the stored uptime
