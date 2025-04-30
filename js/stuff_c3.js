@@ -236,6 +236,13 @@ if (existingBars.length === 7) {
         staticLabel.style.opacity = '1';
         touchLine.style.display = 'none';
       });
+
+      container.addEventListener('mousemove', e => updateTouchLine(e.clientX));
+        container.addEventListener('mouseleave', () => {
+        floatingLabel.style.display = 'none';
+        staticLabel.style.opacity = '1';
+        touchLine.style.display = 'none';
+    });
   }
   
   function fetchUptimeData() {
