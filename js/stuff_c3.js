@@ -280,16 +280,28 @@ if (existingBars.length === 7) {
       });
   }
   
-  document.getElementById("freshRolloverBtn").addEventListener("click", () => {
-    const status = document.getElementById("rolloverStatus");
-    status.textContent = "⏳ Triggering...";
-    fetch("/force-rollover", { method: "POST" })
-      .then(() => {
-        status.textContent = "✅ Rollover complete";
-        setTimeout(() => (status.textContent = ""), 3000);
-      })
-      .catch(err => {
-        console.error("❌ Rollover failed:", err);
-        status.textContent = "❌ Rollover failed";
-      });
-  });
+  fetch("/force-rollover", { method: "POST" })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            status.textContent = "✅ Rollover complete";
+            
+            // Refresh the chart if it exists
+            if (typeof refreshChart === 'function') {
+                refreshChart();
+            }
+        })
+        .catch(err => {
+            console.error("❌ Rollover failed:", err);
+            status.textContent = "❌ Rollover failed";
+        })
+        .finally(() => {
+            // Re-enable button after 3 seconds
+            setTimeout(() => {
+                button.disabled = false;
+                button.style.backgroundColor = "#27C3C3";
+                status.textContent = "";
+            }, 3000);
+        });
+});
