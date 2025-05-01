@@ -30,11 +30,12 @@ function updateChart(data) {
     let startY = 0;
     let dragTimeout = null;
   
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-      labels.push(days[d.getDay()]);
-    }
+    // Generate labels from Sunday to Saturday, with "Today" in the middle
+for (let i = 0; i < 7; i++) {
+  const d = new Date();
+  d.setDate(today.getDate() - (6 - i));  // Reversed logic to ensure today is in the middle
+  labels.push(days[d.getDay()]);
+}
   
     const existingBars = container.querySelectorAll('.bar');
 
@@ -71,7 +72,7 @@ if (existingBars.length === 7) {
 } else {
   // Create new bars
   container.innerHTML = '';
-  data.days.forEach((val, i) => {
+data.days.forEach((val, i) => {
     const bar = document.createElement('div');
     bar.className = 'bar';
     bar.style.height = '0%';
@@ -82,25 +83,25 @@ if (existingBars.length === 7) {
 
     const label = document.createElement('div');
     label.className = 'bar-label';
-    label.textContent = labels[i];
+    label.textContent = labels[i];  // Using the reordered labels
     bar.appendChild(label);
     container.appendChild(bar);
 
     // Bounce effect on initial grow
     setTimeout(() => {
-      const percentHeight = Math.max(1, (val / scaleMax) * 100);
-      const bounceHeight = percentHeight * 1.05;
+        const percentHeight = Math.max(1, (val / scaleMax) * 100);
+        const bounceHeight = percentHeight * 1.05;
 
-      // Step 1: Overshoot
-      bar.style.height = `${bounceHeight}%`;
+        // Step 1: Overshoot
+        bar.style.height = `${bounceHeight}%`;
 
-      // Step 2: Settle back
-      setTimeout(() => {
-        bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        bar.style.height = `${percentHeight}%`;
-      }, 300);
+        // Step 2: Settle back
+        setTimeout(() => {
+            bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            bar.style.height = `${percentHeight}%`;
+        }, 300);
     }, 30 + i * 100); // Wave effect: staggered by 100ms for each bar
-  });
+});
 }
 
     
