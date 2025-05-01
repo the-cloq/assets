@@ -190,7 +190,7 @@ if (lastWeek === 0) {
     if (closest) {
       const up = parseInt(closest.dataset.uptime, 10);
       const idx = parseInt(closest.dataset.index, 10);
-      uptimeTitle.textContent = idx === 6 ? "Today" : labels[idx];
+      uptimeTitle.textContent = idx === 0 ? "Today" : labels[idx];
       uptimeValue.textContent = `${Math.floor(up/60)}h ${up%60}m`;
       
       // HAPTIC or SOUND feedback
