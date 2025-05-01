@@ -138,6 +138,9 @@ if (lastWeek === 0) {
 <div class="uptime-center">
   <span>Daily Avg:</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m
 </div>
+<div class="uptime-right">
+  <span>Last Week:</span><br>${weeklyChangeText}
+</div>
 `;
 
   // 🛠 Show floating toast if weekly message exists
