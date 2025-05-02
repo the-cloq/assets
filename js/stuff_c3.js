@@ -153,8 +153,8 @@ if (lastWeek === 0) {
     <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
     `
     : `
-    <div class="uptime-left"><span>Total:</span><br>£${formatCost(totalKWh * userPrice)}</div>
-    <div class="uptime-center"><span>Daily Avg:</span><br>£${formatCost(avgKWh * userPrice)}</div>
+    <div class="uptime-left"><span>Total:</span><br>${formatCost(totalKWh * userPrice)}</div>
+    <div class="uptime-center"><span>Daily Avg:</span><br>${formatCost(avgKWh * userPrice)}</div>
     <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
     `;
 
