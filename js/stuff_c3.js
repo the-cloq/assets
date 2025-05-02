@@ -1,3 +1,12 @@
+let currentChartMode = "time"; // default is time
+
+document.querySelectorAll('input[name="view-mode"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    currentChartMode = document.querySelector('input[name="view-mode"]:checked').value;
+    fetchUptimeData(); // re-fetch and redraw the chart in new mode
+  });
+});
+
 function updateChart(data) {
   const container = document.querySelector('.bar-container');
   const touchLine = document.querySelector('.touch-line');
@@ -24,8 +33,11 @@ function updateChart(data) {
   const todayVal = data.days[0]; // Today's uptime is now at index 0
   const hours = Math.floor(todayVal / 60);
   const minutes = todayVal % 60;
-  const formatted = `${hours}h ${minutes}m`;
-  staticValue.textContent = formatted;
+  const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
+  const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.30);
+  staticValue.textContent = currentChartMode === "time"
+    ? `${hours}h ${minutes}m`
+    : `£${(kWh * userPrice).toFixed(2)}`;
 
   let isDragging = false;
   let startX = 0;
@@ -131,17 +143,20 @@ if (lastWeek === 0) {
   const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
   const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
 
- summaryUptime.innerHTML = `
-<div class="uptime-left">
-  <span>Total:</span><br>${Math.floor(total/60)}h ${total%60}m
-</div>
-<div class="uptime-center">
-  <span>Daily Avg:</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m
-</div>
-<div class="uptime-right">
-  <span>Last Week:</span><br>${weeklyChangeText}
-</div>
-`;
+  const totalKWh = (total / 60) * (3.75 / 1000);
+  const avgKWh = (avg / 60) * (3.75 / 1000);
+  
+  summaryUptime.innerHTML = currentChartMode === "time"
+    ? `
+    <div class="uptime-left"><span>Total:</span><br>${Math.floor(total/60)}h ${total%60}m</div>
+    <div class="uptime-center"><span>Daily Avg:</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
+    <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
+    `
+    : `
+    <div class="uptime-left"><span>Total:</span><br>£${(totalKWh * userPrice).toFixed(2)}</div>
+    <div class="uptime-center"><span>Daily Avg:</span><br>£${(avgKWh * userPrice).toFixed(2)}</div>
+    <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
+    `;
 
   // 🛠 Show floating toast if weekly message exists
   if (data.weeklyMsg) {
@@ -191,7 +206,10 @@ if (lastWeek === 0) {
       const up = parseInt(closest.dataset.uptime, 10);
       const idx = parseInt(closest.dataset.index, 10);
       uptimeTitle.textContent = idx === 0 ? "Today" : labels[idx];
-      uptimeValue.textContent = `${Math.floor(up/60)}h ${up%60}m`;
+      const cost = (up / 60) * (3.75 / 1000) * userPrice;
+      uptimeValue.textContent = currentChartMode === "time"
+        ? `${Math.floor(up/60)}h ${up%60}m`
+        : `£${cost.toFixed(2)}`;
       
       // HAPTIC or SOUND feedback
       if (idx !== lastTouchedIndex) {
