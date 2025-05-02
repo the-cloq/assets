@@ -34,10 +34,10 @@ function updateChart(data) {
   const hours = Math.floor(todayVal / 60);
   const minutes = todayVal % 60;
   const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
-  const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.30);
+  const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.27);
   staticValue.textContent = currentChartMode === "time"
-    ? `${hours}h ${minutes}m`
-    : `£${(kWh * userPrice).toFixed(2)}`;
+  ? `${hours}h ${minutes}m`
+  : formatCost(kWh * userPrice);
 
   let isDragging = false;
   let startX = 0;
@@ -208,8 +208,8 @@ if (lastWeek === 0) {
       uptimeTitle.textContent = idx === 0 ? "Today" : labels[idx];
       const cost = (up / 60) * (3.75 / 1000) * userPrice;
       uptimeValue.textContent = currentChartMode === "time"
-        ? `${Math.floor(up/60)}h ${up%60}m`
-        : `£${cost.toFixed(2)}`;
+  ? `${Math.floor(up/60)}h ${up%60}m`
+  : formatCost(cost);
       
       // HAPTIC or SOUND feedback
       if (idx !== lastTouchedIndex) {
@@ -262,6 +262,10 @@ if (lastWeek === 0) {
       staticLabel.style.opacity = '1';
       touchLine.style.display = 'none';
   });
+}
+function formatCost(cost) {
+  const rounded = Math.ceil(cost * 100) / 100; // round UP to nearest penny
+  return `£${rounded.toFixed(2)}`;
 }
 
 function fetchUptimeData() {
