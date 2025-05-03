@@ -261,9 +261,9 @@ if (lastWeek === 0) {
   });
 }
 function formatCost(cost) {
-  const rounded = Math.ceil(cost * 100) / 100; // round UP to nearest penny
-  return `£${rounded.toFixed(2)}`;
-}
+    const pennies = (cost * 100).toFixed(1); // Convert to pennies and round to 1 decimal place
+    return `${pennies}p`; // Return in "pennies" format
+  }
 
 function fetchUptimeData() {
   const spinner = document.getElementById('chart-spinner');
