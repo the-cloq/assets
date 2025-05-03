@@ -145,14 +145,14 @@ if (lastWeek === 0) {
   
   summaryUptime.innerHTML = currentChartMode === "time"
     ? `
-    <div class="uptime-left"><span>Total:</span><br>${Math.floor(total/60)}h ${total%60}m</div>
-    <div class="uptime-center"><span>Daily Avg:</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
-    <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
+    <div class="uptime-left"><span>Total</span><br>${Math.floor(total/60)}h ${total%60}m</div>
+    <div class="uptime-center"><span>Daily Avg</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
+    <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
     `
     : `
-    <div class="uptime-left"><span>Total:</span><br>${formatCost(totalKWh * userPrice)}</div>
-    <div class="uptime-center"><span>Daily Avg:</span><br>${formatCost(avgKWh * userPrice)}</div>
-    <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
+    <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
+    <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
+    <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
     `;
 
   // 🛠 Show floating toast if weekly message exists
