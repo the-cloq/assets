@@ -120,25 +120,17 @@ function updateChart(data) {
   let weeklyChange = 0;
 let weeklyChangeText = '';
 
-const lastWeek = data.lastWeek || 0;
-const thisWeek = data.thisWeek || 0;
+const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
+const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
 
-// Check if all 7 daily values are zero
-const allDaysZero = data.days?.every(v => v === 0);
-
-// Override lastWeek if all values are zero
-const adjustedLastWeek = allDaysZero ? 0 : lastWeek;
-
-let weeklyChangeText;
-
-if (adjustedLastWeek === 0) {
+if (lastWeek === 0) {  
   if (thisWeek === 0) {
     weeklyChangeText = '0%';
   } else {
     weeklyChangeText = 'New!';
   }
 } else {
-  const weeklyChange = Math.round(((thisWeek - adjustedLastWeek) / adjustedLastWeek) * 100);
+  weeklyChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
   const changeArrow = weeklyChange >= 0 
     ? '<span style="color:#00FF00;">▲</span>' 
     : '<span style="color:#FF0000;">▼</span>';
