@@ -21,48 +21,63 @@ function updateChart(data) {
   const statusText = document.getElementById('status-text');
   const wrapper = document.querySelector('.bar-chart-wrapper');
 
-// Calculate the maximum value dynamically and scale it up for cost-view
-const maxValue = Math.max(...data.days, 1);
-const scaleMax = currentChartMode === "cost" 
-  ? Math.max(...data.days.map((val) => (val / 60) * (3.75 / 1000) * userPrice), 1)
-  : maxValue * 1.4;
+  const maxValue = Math.max(...data.days, 1);
+  const scaleMax = maxValue * 1.4;
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date();
+  const labels = [];
 
-// Adjust bar heights based on the mode
-data.days.forEach((val, i) => {
-  const bar = existingBars[i];
-  const oldUptime = parseInt(bar.dataset.uptime || "0", 10);
+  const todayVal = data.days[0]; // Today's uptime is now at index 0
+  const hours = Math.floor(todayVal / 60);
+  const minutes = todayVal % 60;
+  const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
+  const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 5.27);
+  staticValue.textContent = currentChartMode === "time"
+  ? `${hours}h ${minutes}m`
+  : formatCost(kWh * userPrice);
 
-  // Calculate height as a percentage of scaleMax
-  const valueForMode = currentChartMode === "cost"
-    ? (val / 60) * (3.75 / 1000) * userPrice
-    : val;
-  const percentHeight = Math.max(1, (valueForMode / scaleMax) * 100);
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let dragTimeout = null;
 
-  // Animate height changes
-  if (val !== oldUptime) {
-    const bounceHeight = percentHeight * 1.05;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    labels.push(days[d.getDay()]);
+  }
 
-    bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-    setTimeout(() => {
-      bar.style.height = `${bounceHeight}%`;
+  const existingBars = container.querySelectorAll('.bar');
 
-      setTimeout(() => {
+  if (existingBars.length === 7) {
+    data.days.forEach((val, i) => {
+      const bar = existingBars[i];
+      const oldUptime = parseInt(bar.dataset.uptime || "0", 10);
+
+      const percentHeight = Math.max(1, (val / scaleMax) * 100);
+
+      if (val !== oldUptime) {
+        const bounceHeight = percentHeight * 1.05;
+
+        // Step 1: Slightly overshoot (even if shrinking)
+        bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        setTimeout(() => {
+          bar.style.height = `${bounceHeight}%`;
+
+          // Step 2: Bounce back or shrink
+          setTimeout(() => {
+            bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            bar.style.height = `${percentHeight}%`;
+          }, 300);
+        }, i * 100);
+      } else {
+        // 🔁 Even if unchanged, make sure height stays in sync (e.g. after scaleMax change)
         bar.style.height = `${percentHeight}%`;
-      }, 300);
-    }, i * 100);
-  } else {
-    bar.style.height = `${percentHeight}%`;
-  }
+      }
 
-  // Update the bar's dataset for future comparisons
-  bar.dataset.uptime = val;
-
-  // Update the label if in cost-view
-  if (currentChartMode === "cost") {
-    const cost = valueForMode.toFixed(2);
-    bar.querySelector('.bar-label').textContent = `$${cost}`;
-  }
-});
+      // Always update the stored uptime
+      bar.dataset.uptime = val;
+    });
   } else {
     // Create new bars
     container.innerHTML = '';
