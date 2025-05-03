@@ -22,7 +22,7 @@ function updateChart(data) {
   const wrapper = document.querySelector('.bar-chart-wrapper');
 
   // Reverse data.days to show today's uptime first
-  data.days.reverse();
+  //data.days.reverse();
 
   const maxValue = Math.max(...data.days, 1);
   const scaleMax = maxValue * 1.4;
