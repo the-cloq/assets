@@ -21,9 +21,6 @@ function updateChart(data) {
   const statusText = document.getElementById('status-text');
   const wrapper = document.querySelector('.bar-chart-wrapper');
 
-  // Reverse data.days to show today's uptime first
-  //data.days.reverse();
-
   const maxValue = Math.max(...data.days, 1);
   const scaleMax = maxValue * 1.4;
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -157,10 +154,6 @@ if (lastWeek === 0) {
     <div class="uptime-center"><span>Daily Avg:</span><br>${formatCost(avgKWh * userPrice)}</div>
     <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
     `;
-
-// Optionally, show today's cost separately:
-document.querySelector('.today-cost').textContent = `Today's cost: ${formatCost(todayCost)}`;
-
 
   // 🛠 Show floating toast if weekly message exists
   if (data.weeklyMsg) {
