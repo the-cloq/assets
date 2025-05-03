@@ -120,11 +120,10 @@ function updateChart(data) {
   let weeklyChange = 0;
 let weeklyChangeText = '';
 
-// Calculate weekly change, if available
-const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
-const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
+const lastWeek = data.lastWeek || 0;
+const thisWeek = data.thisWeek || 0;
 
-if (lastWeek === 0) {  
+if (lastWeek === 0) {
   if (thisWeek === 0) {
     weeklyChangeText = '0%';
   } else {
@@ -138,21 +137,14 @@ if (lastWeek === 0) {
   weeklyChangeText = `${changeArrow} ${Math.abs(weeklyChange)}%`;
 }
 
-const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
-const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
+const totalKWh = (total / 60) * (3.75 / 1000);
+const avgKWh = (avg / 60) * (3.75 / 1000);
+const totalCost = totalKWh * userPrice;
+const avgCost = avgKWh * userPrice;
 
-// Total and average kWh for the last 7 days
-const totalKWh = (total / 60) * (3.75 / 1000); // Total kWh for all 7 days
-const avgKWh = (avg / 60) * (3.75 / 1000);   // Average kWh for all 7 days
-
-// Calculate the cost for total and average
-const totalCost = totalKWh * userPrice;  // Total cost for all 7 days
-const avgCost = avgKWh * userPrice;      // Average daily cost for all 7 days
-
-// Add today’s cost separately to avoid duplication in the summary
-const todayVal = data.days[0];  // Today's uptime value
-const todayKWh = (todayVal / 60) * (3.75 / 1000);  // kWh for today
-const todayCost = todayKWh * userPrice;  // Cost for today
+const todayVal = (data.days && data.days.length > 0) ? data.days[0] : 0;
+const todayKWh = (todayVal / 60) * (3.75 / 1000);
+const todayCost = todayKWh * userPrice;
 
 summaryUptime.innerHTML = currentChartMode === "time"
   ? `
@@ -168,6 +160,7 @@ summaryUptime.innerHTML = currentChartMode === "time"
       Today's Cost: ${formatCost(todayCost)}
     </div>
   `;
+
   // 🛠 Show floating toast if weekly message exists
   if (data.weeklyMsg) {
     const toast = document.getElementById('weekly-toast');
