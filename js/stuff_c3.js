@@ -1,12 +1,15 @@
-let currentChartMode = "time"; // default is time
-
+let currentChartMode = localStorage.getItem('viewMode') || "time";
 document.querySelectorAll('input[name="view-mode"]').forEach(radio => {
+  if (radio.value === currentChartMode) {
+    radio.checked = true;
+  }
   radio.addEventListener('change', () => {
+    // Update the current chart mode based on the selected radio button
     currentChartMode = document.querySelector('input[name="view-mode"]:checked').value;
-    fetchUptimeData(); // re-fetch and redraw the chart in new mode
+    localStorage.setItem('viewMode', currentChartMode);
+    fetchUptimeData();
   });
 });
-
 function updateChart(data) {
   const container = document.querySelector('.bar-container');
   const touchLine = document.querySelector('.touch-line');
