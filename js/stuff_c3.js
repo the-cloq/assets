@@ -120,9 +120,10 @@ function updateChart(data) {
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
-  let weeklyChange = 0;
+let weeklyChange = 0;
 let weeklyChangeText = '';
 
+// Calculate weekly change, if available
 const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
 const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
 
@@ -140,23 +141,38 @@ if (lastWeek === 0) {
   weeklyChangeText = `${changeArrow} ${Math.abs(weeklyChange)}%`;
 }
 
-  const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
-  const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
+const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
+const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
 
-  const totalKWh = (total / 60) * (3.75 / 1000);
-  const avgKWh = (avg / 60) * (3.75 / 1000);
+// Total and average kWh for the last 7 days
+const totalKWh = (total / 60) * (3.75 / 1000); // Total kWh for all 7 days
+const avgKWh = (avg / 60) * (3.75 / 1000);   // Average kWh for all 7 days
 
-  summaryUptime.innerHTML = currentChartMode === "time"
+// Calculate the cost for total and average
+const totalCost = totalKWh * userPrice;  // Total cost for all 7 days
+const avgCost = avgKWh * userPrice;      // Average daily cost for all 7 days
+
+// Add today’s cost separately to avoid duplication in the summary
+const todayVal = data.days[0];  // Today's uptime value
+const todayKWh = (todayVal / 60) * (3.75 / 1000);  // kWh for today
+const todayCost = todayKWh * userPrice;  // Cost for today
+
+// Update summary uptime display
+summaryUptime.innerHTML = currentChartMode === "time"
   ? `
     <div class="uptime-left"><span>Total:</span><br>${Math.floor(total / 60)}h ${total % 60}m</div>
     <div class="uptime-center"><span>Daily Avg:</span><br>${Math.floor(avg / 60)}h ${Math.round(avg % 60)}m</div>
     <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
   `
   : `
-    <div class="uptime-left"><span>Total:</span><br>${formatCost(totalKWh * userPrice)}</div>
-    <div class="uptime-center"><span>Daily Avg:</span><br>${formatCost(avgKWh * userPrice)}</div>
+    <div class="uptime-left"><span>Total:</span><br>${formatCost(totalCost)}</div>
+    <div class="uptime-center"><span>Daily Avg:</span><br>${formatCost(avgCost)}</div>
     <div class="uptime-right"><span>Last Week:</span><br>${weeklyChangeText}</div>
   `;
+
+// Optionally, show today's cost separately:
+document.querySelector('.today-cost').textContent = `Today's cost: ${formatCost(todayCost)}`;
+
 
   // 🛠 Show floating toast if weekly message exists
   if (data.weeklyMsg) {
