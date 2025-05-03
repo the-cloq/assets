@@ -127,7 +127,7 @@ if (lastWeek === 0) {
   if (thisWeek === 0) {
     weeklyChangeText = '0%';
   } else {
-    weeklyChangeText = 'New!';
+    weeklyChangeText = 'N/A';
   }
 } else {
   weeklyChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
