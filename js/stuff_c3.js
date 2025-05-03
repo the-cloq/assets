@@ -117,18 +117,20 @@ function updateChart(data) {
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
-  let weeklyChange = 0;
+let weeklyChange = 0;
 let weeklyChangeText = '';
 
-const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
-const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
+const lastWeek = data.lastWeek || 0;
+const thisWeek = data.thisWeek || 0;
+const days = data.days || [];
 
-if (lastWeek === 0) {  
-  if (thisWeek === 0) {
-    weeklyChangeText = '0%';
-  } else {
-    weeklyChangeText = 'New!';
-  }
+// Check if the current week's days contain any zero
+const hasIncompleteDays = days.includes(0);
+
+if (hasIncompleteDays) {
+  weeklyChangeText = 'New!';
+} else if (lastWeek === 0) {
+  weeklyChangeText = thisWeek === 0 ? '0%' : 'New!';
 } else {
   weeklyChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
   const changeArrow = weeklyChange >= 0 
