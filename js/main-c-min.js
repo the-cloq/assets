@@ -656,16 +656,23 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
   function loadSystemInfo() {
-    fetch("/system-info")
-        .then((e) => e.json())
-        .then((e) => {
-            const t = e.freeHeap,
-                n = e.heapFragmentation,
-                o = e.maxFreeBlockSize,
-                a = (e.uptime, Math.min((t / 5e4) * 100, 100)),
-                s = Math.min((n / 50) * 100, 100),
-                i = Math.min((o / 5e4) * 100, 100);
-            (document.getElementById("heapFill").style.height = `${a}%`), (document.getElementById("heapValue").textContent = (t / 1024).toFixed(1) + "kb");
+    fetch('/system-info')
+      .then(res => res.json())
+      .then(info => {
+        let heapStatus = "Unknown";
+        let heapColor = "#aaa";
+  
+        if (info.freeHeap > 25000) {
+          heapStatus = "Excellent";
+          heapColor = "#00FF00";
+        } else if (info.freeHeap > 15000) {
+          heapStatus = "Good";
+          heapColor = "#FFD700";
+        } else {
+          heapStatus = "Bad";
+          heapColor = "#FF0000";
+        }
+        (document.getElementById("heapFill").style.height = `${a}%`), (document.getElementById("heapValue").textContent = (t / 1024).toFixed(1) + "kb");
             const r = document.getElementById("fragFill");
             (r.style.height = `${s}%`),
                 (document.getElementById("fragValue").textContent = n + "%"),
@@ -677,6 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch((e) => console.error(e));
 }
   
+
    // JavaScript to toggle the accordion open and closed
    const accordion = document.querySelector('.accordion');
    const header = accordion.querySelector('.accordion-header');
