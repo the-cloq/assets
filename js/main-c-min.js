@@ -655,54 +655,28 @@ document.addEventListener('DOMContentLoaded', function() {
     initOpenWeatherWidget();
 });
 
-/*
   function loadSystemInfo() {
-    fetch('/system-info')
-      .then(res => res.json())
-      .then(info => {
-        document.getElementById('sys-info').innerHTML = `
-        <h3>System and Memory Health</h3>
-        <div class="health_row" id="heap-status">Free Heap <span>${info.freeHeap} bytes</span></div>
-        <div class="health_row">Heap Fragmentation <span>${info.heapFragmentation}%</span></div>
-        <div class="health_row">Max Free Block <span>${info.maxFreeBlockSize} bytes</span></div>
-        <div class="health_row">Uptime <span>${info.uptime}</span></div>
-        `;
-      })
-      .catch(err => console.error(err));
-  }*/
-
-  function loadSystemInfo() {
-    fetch('/system-info')
-      .then(res => res.json())
-      .then(info => {
-        let heapStatus = "Unknown";
-        let heapColor = "#aaa";
+    fetch("/system-info")
+        .then((e) => e.json())
+        .then((e) => {
+            const t = e.freeHeap,
+                n = e.heapFragmentation,
+                o = e.maxFreeBlockSize,
+                a = (e.uptime, Math.min((t / 5e4) * 100, 100)),
+                s = Math.min((n / 50) * 100, 100),
+                i = Math.min((o / 5e4) * 100, 100);
+            (document.getElementById("heapFill").style.height = `${a}%`), (document.getElementById("heapValue").textContent = (t / 1024).toFixed(1) + "kb");
+            const r = document.getElementById("fragFill");
+            (r.style.height = `${s}%`),
+                (document.getElementById("fragValue").textContent = n + "%"),
+                (r.style.background = n > 50 ? "linear-gradient(to top, #f44336, #e57373)" : n > 30 ? "linear-gradient(to top, #ff9800, #ffc107)" : "#00FFFF");
+            (document.getElementById("blockFill").style.height = `${i}%`), (document.getElementById("blockValue").textContent = (o / 1024).toFixed(1) + "kb");
+            const c = document.getElementById("memoryStatusText");
+            n > 50 ? ((c.textContent = "Poor"), (c.style.color = "red")) : n > 30 ? ((c.textContent = "Warning"), (c.style.color = "orange")) : ((c.textContent = "Excellent"), (c.style.color = "#ffffff")), adjustBarLabels();
+        })
+        .catch((e) => console.error(e));
+}
   
-        if (info.freeHeap > 25000) {
-          heapStatus = "Excellent";
-          heapColor = "#00FF00";
-        } else if (info.freeHeap > 15000) {
-          heapStatus = "Good";
-          heapColor = "#FFD700";
-        } else {
-          heapStatus = "Bad";
-          heapColor = "#FF0000";
-        }
-        document.getElementById('sys-info').innerHTML = `
-          <h3>System and Memory Health</h3>
-          <div class="health_row" id="heap-status">
-            Free Heap <span>${info.freeHeap} bytes</span>
-          </div>
-          <div class="health_row">Heap Fragmentation <span>${info.heapFragmentation}%</span></div>
-          <div class="health_row">Max Free Block <span>${info.maxFreeBlockSize} bytes</span></div>
-          <div class="health_row">Uptime <span>${info.uptime}</span></div>
-          <div class="heap-status">Memory Status: <span style="color: ${heapColor};">${heapStatus}</span></div>
-        `;
-      })
-      .catch(err => console.error(err));
-  }
-  
-
    // JavaScript to toggle the accordion open and closed
    const accordion = document.querySelector('.accordion');
    const header = accordion.querySelector('.accordion-header');
