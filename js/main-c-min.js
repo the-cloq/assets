@@ -232,7 +232,29 @@ function resetPosition() {
 function flipCard() {
     document.getElementById("flipCard").classList.toggle("flip");
 }
-function loadSystemInfo(){fetch("/system-info").then((e=>e.json())).then((e=>{const t=e.freeHeap,n=e.heapFragmentation,o=e.maxFreeBlockSize,a=(e.uptime,Math.min(t/5e4*100,100)),s=Math.min(n/50*100,100),i=Math.min(o/5e4*100,100);document.getElementById("heapFill").style.height=`${a}%`,document.getElementById("heapValue").textContent=(t/1024).toFixed(1)+"kb";const r=document.getElementById("fragFill");r.style.height=`${s}%`,document.getElementById("fragValue").textContent=n+"%",r.style.background=n>50?"linear-gradient(to top, #f44336, #e57373)":n>30?"linear-gradient(to top, #ff9800, #ffc107)":"#00FFFF",document.getElementById("blockFill").style.height=`${i}%`,document.getElementById("blockValue").textContent=(o/1024).toFixed(1)+"kb";const c=document.getElementById("memoryStatusText");n>50?(c.textContent="Poor",c.style.color="red"):n>30?(c.textContent="Warning",c.style.color="orange"):(c.textContent="Excellent",c.style.color="#ffffff"),adjustBarLabels()})).catch((e=>console.error(e)))}
+function loadSystemInfo() {
+    fetch("/system-info")
+        .then((e) => e.json())
+        .then((e) => {
+            const t = e.freeHeap,
+                n = e.heapFragmentation,
+                o = e.maxFreeBlockSize,
+                a = (e.uptime, Math.min((t / 5e4) * 100, 100)),
+                s = Math.min((n / 50) * 100, 100),
+                i = Math.min((o / 5e4) * 100, 100);
+            (document.getElementById("heapFill").style.height = `${a}%`), (document.getElementById("heapValue").textContent = (t / 1024).toFixed(1) + "kb");
+            const r = document.getElementById("fragFill");
+            (r.style.height = `${s}%`),
+                (document.getElementById("fragValue").textContent = n + "%"),
+                (r.style.background = n > 50 ? "linear-gradient(to top, #f44336, #e57373)" : n > 30 ? "linear-gradient(to top, #ff9800, #ffc107)" : "#00FFFF"),
+                (document.getElementById("blockFill").style.height = `${i}%`),
+                (document.getElementById("blockValue").textContent = (o / 1024).toFixed(1) + "kb");
+            const c = document.getElementById("memoryStatusText");
+            n > 50 ? ((c.textContent = "Poor"), (c.style.color = "red")) : n > 30 ? ((c.textContent = "Warning"), (c.style.color = "orange")) : ((c.textContent = "Excellent"), (c.style.color = "#ffffff")), adjustBarLabels();
+        })
+        .catch((e) => console.error(e));
+}
+
 function adjustBarLabels() {
     document.querySelectorAll(".bar-fill").forEach((e) => {
         const t = e.querySelector(".bar-value");
