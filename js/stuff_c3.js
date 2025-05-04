@@ -25,44 +25,30 @@ function updateChart(data) {
   const wrapper = document.querySelector('.bar-chart-wrapper');
 
   const maxValue = Math.max(...data.days, 1);
-const scaleMax = maxValue * 1.4;
-const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const today = new Date();
-const labels = [];
+  const scaleMax = maxValue * 1.4;
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date();
+  const labels = [];
 
-const todayVal = data.days[0]; // Today's uptime is now at index 0
-const hours = Math.floor(todayVal / 60);
-const minutes = todayVal % 60;
-const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
-const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 5.27);
-staticValue.textContent = currentChartMode === "time"
+  const todayVal = data.days[0]; // Today's uptime is now at index 0
+  const hours = Math.floor(todayVal / 60);
+  const minutes = todayVal % 60;
+  const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
+  const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 5.27);
+  staticValue.textContent = currentChartMode === "time"
   ? `${hours}h ${minutes}m`
   : formatCost(kWh * userPrice);
 
-let isDragging = false;
-let startX = 0;
-let startY = 0;
-let dragTimeout = null;
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let dragTimeout = null;
 
-// Shift days correctly and update the labels array
-for (let i = 0; i < 7; i++) {
-  const d = new Date();
-  d.setDate(today.getDate() - i);
-  labels.push(days[d.getDay()]);
-}
-
-// Reverse the data.days array to align the days with the labels correctly
-const reversedDays = [...data.days].reverse();
-
-// You can now use reversedDays to render your day data in the correct order
-console.log('Labels:', labels);
-console.log('Reversed Days:', reversedDays);
-
-// Example of displaying each day value
-for (let i = 0; i < 7; i++) {
-  console.log(`${labels[i]}: ${reversedDays[i]} minutes`);
-}
-
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    labels.push(days[d.getDay()]);
+  }
 
   const existingBars = container.querySelectorAll('.bar');
 
