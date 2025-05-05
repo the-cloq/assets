@@ -49,8 +49,6 @@ function updateChart(data) {
     d.setDate(today.getDate() - i);
     labels.push(days[d.getDay()]);
   }
-  data.days.reverse();
-  labels.reverse();
 
   const existingBars = container.querySelectorAll('.bar');
 
