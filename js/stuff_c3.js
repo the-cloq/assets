@@ -135,12 +135,14 @@ function updateChart(data) {
 
 let weeklyChangeText = '';
 if (weeklyChange > 0) {
-  weeklyChangeText = `<span style="color:#FF0000;">▲ Up ${formatMinutes(weeklyChange)}</span>`;
-} else if (weeklyChange < 0) {
-  weeklyChangeText = `<span style="color:#00FF00;">▼ Down ${formatMinutes(-weeklyChange)}</span>`;
-} else {
-  weeklyChangeText = 'No change';
-}
+    weeklyChangeText = `<span style="color:white;">` +
+      `<span style="color:#FF0000;">▲</span> Up ${formatMinutes(weeklyChange)}</span>`;
+  } else if (weeklyChange < 0) {
+    weeklyChangeText = `<span style="color:white;">` +
+      `<span style="color:#00FF00;">▼</span> Down ${formatMinutes(-weeklyChange)}</span>`;
+  } else {
+    weeklyChangeText = '<span style="color:white;">No change</span>';
+  }
 
   const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
   const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
