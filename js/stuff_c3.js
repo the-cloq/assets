@@ -132,14 +132,13 @@ function updateChart(data) {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   }
 
-
 let weeklyChangeText = '';
 if (weeklyChange > 0) {
     weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#FF0000;">▲</span> Up ${formatMinutes(weeklyChange)}</span>`;
+      `<span style="color:#FF0000;">▲</span> ${formatMinutes(weeklyChange)}</span>`;
   } else if (weeklyChange < 0) {
     weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#00FF00;">▼</span> Down ${formatMinutes(-weeklyChange)}</span>`;
+      `<span style="color:#00FF00;">▼</span> ${formatMinutes(-weeklyChange)}</span>`;
   } else {
     weeklyChangeText = '<span style="color:white;">No change</span>';
   }
