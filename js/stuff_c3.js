@@ -116,61 +116,60 @@ function updateChart(data) {
     });
   }
 
-  //const todayMin = data.days[6];
-  const todayMin = data.days[0];
-  const total = data.days.reduce((a, b) => a + b, 0);
-  const avg = total / 7;
+// Calculate today, total, and average
+const todayMin = data.days[0];
+const total = data.days.reduce((a, b) => a + b, 0);
+const avg = total / 7;
 
-  function formatMinutes(mins) {
-    const hours = Math.floor(mins / 60);
-    const minutes = mins % 60;
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
+// Helper to format minutes as "Xh Ym"
+function formatMinutes(mins) {
+  const hours = Math.floor(mins / 60);
+  const minutes = mins % 60;
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
   }
-  
-  let weeklyChangeText = '';
-  
-  const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
-  const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
-  
-  const diff = thisWeek - lastWeek;
-  
-  if (lastWeek === 0) {
-    if (thisWeek === 0) {
-      weeklyChangeText = 'No change';
-    } else {
-      weeklyChangeText = `Up ${formatMinutes(thisWeek)}`;
-    }
-  } else if (diff > 0) {
-    // More uptime (adjust color as you wish)
-    weeklyChangeText = `<span style="color:#FF0000;">▲ Up ${formatMinutes(diff)}</span>`;
-  } else if (diff < 0) {
-    // Less uptime (green, as you prefer)
-    weeklyChangeText = `<span style="color:#00FF00;">▼ Down ${formatMinutes(-diff)}</span>`;
-  } else {
+  return `${minutes}m`;
+}
+
+// Calculate weekly change
+let weeklyChangeText = '';
+const lastWeek = data.lastWeek || 0;
+const thisWeek = data.thisWeek || 0;
+const diff = thisWeek - lastWeek;
+
+if (lastWeek === 0) {
+  if (thisWeek === 0) {
     weeklyChangeText = 'No change';
+  } else {
+    weeklyChangeText = `Up ${formatMinutes(thisWeek)}`;
   }
-  
+} else if (diff > 0) {
+  // More uptime (red, as you prefer)
+  weeklyChangeText = `<span style="color:#FF0000;">▲ Up ${formatMinutes(diff)}</span>`;
+} else if (diff < 0) {
+  // Less uptime (green, as you prefer)
+  weeklyChangeText = `<span style="color:#00FF00;">▼ Down ${formatMinutes(-diff)}</span>`;
+} else {
+  weeklyChangeText = 'No change';
+}
 
-  const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
-  const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
+// Calculate kWh and cost
+const totalKWh = (total / 60) * (3.75 / 1000);
+const avgKWh = (avg / 60) * (3.75 / 1000);
 
-  const totalKWh = (total / 60) * (3.75 / 1000);
-  const avgKWh = (avg / 60) * (3.75 / 1000);
-  
-  summaryUptime.innerHTML = currentChartMode === "time"
-    ? `
+// Update the UI
+summaryUptime.innerHTML = currentChartMode === "time"
+  ? `
     <div class="uptime-left"><span>Total</span><br>${Math.floor(total/60)}h ${total%60}m</div>
     <div class="uptime-center"><span>Daily Avg</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
     <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
     `
-    : `
+  : `
     <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
     <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
     <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
     `;
+
 
   // 🛠 Show floating toast if weekly message exists
   if (data.weeklyMsg) {
