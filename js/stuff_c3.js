@@ -121,10 +121,7 @@ function updateChart(data) {
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
-  let weeklyChange = 0;
-  let weeklyChangeText = '';
-
-// Defensive: ensure data.days is an array of numbers
+  // Defensive: ensure data.days is an array of numbers
 const daysArray = Array.isArray(data.days) ? data.days.map(Number) : [0,0,0,0,0,0,0];
 const todayMin = daysArray[0];
 const total = daysArray.reduce((a, b) => a + b, 0);
@@ -167,37 +164,34 @@ if (lastWeek === 0) {
 const totalKWh = (total / 60) * (3.75 / 1000);
 const avgKWh = (avg / 60) * (3.75 / 1000);
 
-// Defensive: check summaryUptime exists
-if (typeof summaryUptime !== 'undefined' && summaryUptime) {
-  summaryUptime.innerHTML = currentChartMode === "time"
-    ? `
-      <div class="uptime-left"><span>Total</span><br>${formatMinutes(total)}</div>
-      <div class="uptime-center"><span>Daily Avg</span><br>${formatMinutes(avg)}</div>
-      <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
-      `
-    : `
-      <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
-      <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
-      <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
-      `;
+summaryUptime.innerHTML = currentChartMode === "time"
+  ? `
+    <div class="uptime-left"><span>Total</span><br>${formatMinutes(total)}</div>
+    <div class="uptime-center"><span>Daily Avg</span><br>${formatMinutes(avg)}</div>
+    <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
+    `
+  : `
+    <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
+    <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
+    <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
+    `;
+
+// 🛠 Show floating toast if weekly message exists
+if (data.weeklyMsg) {
+  const toast = document.getElementById('weekly-toast');
+  if (toast) {
+    toast.textContent = data.weeklyMsg;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 600);
+    }, 4000);
+  }
 }
 
-
-  // 🛠 Show floating toast if weekly message exists
-  if (data.weeklyMsg) {
-    const toast = document.getElementById('weekly-toast');
-    if (toast) {
-      toast.textContent = data.weeklyMsg;
-      toast.style.display = 'block';
-      toast.style.opacity = '1';
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => {
-          toast.style.display = 'none';
-        }, 600);
-      }, 4000);
-    }
-  }
 
   statusText.innerHTML = "<span>Energy Saving:</span> " + (avg <= 90 ? "Excellent" : avg <= 240 ? "Good" : "Bad");
   statusText.style.color = avg <= 90 ? "#FFFFFF" : avg <= 240 ? "#FFD700" : "#FF0000";
