@@ -135,7 +135,7 @@ function updateChart(data) {
 let weeklyChangeText = '';
 if (weeklyChange > 0) {
     weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#FF0000;">▲</span> ${formatMinutes(weeklyChange)}</span>`;
+      `<span style="color:#FFB200;">▲</span> ${formatMinutes(weeklyChange)}</span>`;
   } else if (weeklyChange < 0) {
     weeklyChangeText = `<span style="color:white;">` +
       `<span style="color:#00FF00;">▼</span> ${formatMinutes(-weeklyChange)}</span>`;
@@ -144,7 +144,7 @@ if (weeklyChange > 0) {
   }
 
   const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
-  const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
+  const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FFB200';
 
   const totalKWh = (total / 60) * (3.75 / 1000);
   const avgKWh = (avg / 60) * (3.75 / 1000);
