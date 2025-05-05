@@ -121,24 +121,25 @@ function updateChart(data) {
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
-  let weeklyChange = 0;
-  let weeklyChangeText = '';
+  const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
+  const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
+  const weeklyChange = thisWeek - lastWeek;
 
-const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
-const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
-
-if (lastWeek === 0) {  
-  if (thisWeek === 0) {
-    weeklyChangeText = '0%';
-  } else {
-    weeklyChangeText = 'N/A';
+  function formatMinutes(mins) {
+    mins = Math.round(mins);
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   }
+
+
+let weeklyChangeText = '';
+if (weeklyChange > 0) {
+  weeklyChangeText = `<span style="color:#FF0000;">▲ Up ${formatMinutes(weeklyChange)}</span>`;
+} else if (weeklyChange < 0) {
+  weeklyChangeText = `<span style="color:#00FF00;">▼ Down ${formatMinutes(-weeklyChange)}</span>`;
 } else {
-  weeklyChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
-  const changeArrow = weeklyChange >= 0 
-    ? '<span style="color:#00FF00;">▲</span>' 
-    : '<span style="color:#FF0000;">▼</span>';
-  weeklyChangeText = `${changeArrow} ${Math.abs(weeklyChange)}%`;
+  weeklyChangeText = 'No change';
 }
 
   const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
