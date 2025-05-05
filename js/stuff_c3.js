@@ -116,7 +116,8 @@ function updateChart(data) {
     });
   }
 
-  const todayMin = data.days[6];
+  //const todayMin = data.days[6];
+  const todayMin = data.days[0];
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
