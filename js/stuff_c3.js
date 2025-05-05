@@ -121,77 +121,59 @@ function updateChart(data) {
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
-  // Defensive: ensure data.days is an array of numbers
-const daysArray = Array.isArray(data.days) ? data.days.map(Number) : [0,0,0,0,0,0,0];
-const todayMin = daysArray[0];
-const total = daysArray.reduce((a, b) => a + b, 0);
-const avg = total / 7;
+  let weeklyChange = 0;
+  let weeklyChangeText = '';
 
-// Defensive: ensure lastWeek and thisWeek are numbers
-const lastWeek = Number(data.lastWeek) || 0;
-const thisWeek = Number(data.thisWeek) || 0;
+const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
+const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
 
-// Helper to format minutes as "Xh Ym"
-function formatMinutes(mins) {
-  mins = Math.round(mins);
-  const hours = Math.floor(mins / 60);
-  const minutes = mins % 60;
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-  return `${minutes}m`;
-}
-
-// Calculate weekly change
-let weeklyChangeText = '';
-const diff = thisWeek - lastWeek;
-
-if (lastWeek === 0) {
+if (lastWeek === 0) {  
   if (thisWeek === 0) {
-    weeklyChangeText = 'No change';
+    weeklyChangeText = '0%';
   } else {
-    weeklyChangeText = `Up ${formatMinutes(thisWeek)}`;
+    weeklyChangeText = 'N/A';
   }
-} else if (diff > 0) {
-  weeklyChangeText = `<span style="color:#FF0000;">▲ Up ${formatMinutes(diff)}</span>`;
-} else if (diff < 0) {
-  weeklyChangeText = `<span style="color:#00FF00;">▼ Down ${formatMinutes(-diff)}</span>`;
 } else {
-  weeklyChangeText = 'No change';
+  weeklyChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+  const changeArrow = weeklyChange >= 0 
+    ? '<span style="color:#00FF00;">▲</span>' 
+    : '<span style="color:#FF0000;">▼</span>';
+  weeklyChangeText = `${changeArrow} ${Math.abs(weeklyChange)}%`;
 }
 
-// Calculate kWh and cost
-const totalKWh = (total / 60) * (3.75 / 1000);
-const avgKWh = (avg / 60) * (3.75 / 1000);
+  const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
+  const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
 
-summaryUptime.innerHTML = currentChartMode === "time"
-  ? `
-    <div class="uptime-left"><span>Total</span><br>${formatMinutes(total)}</div>
-    <div class="uptime-center"><span>Daily Avg</span><br>${formatMinutes(avg)}</div>
+  const totalKWh = (total / 60) * (3.75 / 1000);
+  const avgKWh = (avg / 60) * (3.75 / 1000);
+  
+  summaryUptime.innerHTML = currentChartMode === "time"
+    ? `
+    <div class="uptime-left"><span>Total</span><br>${Math.floor(total/60)}h ${total%60}m</div>
+    <div class="uptime-center"><span>Daily Avg</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
     <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
     `
-  : `
+    : `
     <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
     <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
     <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
     `;
 
-// 🛠 Show floating toast if weekly message exists
-if (data.weeklyMsg) {
-  const toast = document.getElementById('weekly-toast');
-  if (toast) {
-    toast.textContent = data.weeklyMsg;
-    toast.style.display = 'block';
-    toast.style.opacity = '1';
-    setTimeout(() => {
-      toast.style.opacity = '0';
+  // 🛠 Show floating toast if weekly message exists
+  if (data.weeklyMsg) {
+    const toast = document.getElementById('weekly-toast');
+    if (toast) {
+      toast.textContent = data.weeklyMsg;
+      toast.style.display = 'block';
+      toast.style.opacity = '1';
       setTimeout(() => {
-        toast.style.display = 'none';
-      }, 600);
-    }, 4000);
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 600);
+      }, 4000);
+    }
   }
-}
-
 
   statusText.innerHTML = "<span>Energy Saving:</span> " + (avg <= 90 ? "Excellent" : avg <= 240 ? "Good" : "Bad");
   statusText.style.color = avg <= 90 ? "#FFFFFF" : avg <= 240 ? "#FFD700" : "#FF0000";
