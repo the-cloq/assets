@@ -25,96 +25,101 @@ function updateChart(data) {
   const wrapper = document.querySelector('.bar-chart-wrapper');
 
   const maxValue = Math.max(...data.days, 1);
-  const scaleMax = maxValue * 1.4;
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const today = new Date();
-  const labels = [];
+const scaleMax = maxValue * 1.4;
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const today = new Date();
+const labels = [];
 
-  const todayVal = data.days[0]; // Today's uptime is now at index 0
-  const hours = Math.floor(todayVal / 60);
-  const minutes = todayVal % 60;
-  const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
-  const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.27);
-  staticValue.textContent = currentChartMode === "time"
+// Today is now at index 6 (rightmost)
+const todayVal = data.days[6];
+const hours = Math.floor(todayVal / 60);
+const minutes = todayVal % 60;
+const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
+const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.27);
+staticValue.textContent = currentChartMode === "time"
   ? `${hours}h ${minutes}m`
   : formatCost(kWh * userPrice);
 
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let dragTimeout = null;
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+let dragTimeout = null;
 
-  for (let i = 0; i < 7; i++) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    labels.push(days[d.getDay()]);
-  }
+// Generate labels: leftmost is 6 days ago, rightmost is today
+for (let i = 6; i >= 0; i--) {
+  const d = new Date();
+  d.setDate(today.getDate() - i);
+  labels.push(days[d.getDay()]);
+}
+// Now labels[0] is 6 days ago, labels[6] is today
 
-  const existingBars = container.querySelectorAll('.bar');
+const existingBars = container.querySelectorAll('.bar');
 
-  if (existingBars.length === 7) {
-    data.days.forEach((val, i) => {
-      const bar = existingBars[i];
-      const oldUptime = parseInt(bar.dataset.uptime || "0", 10);
+if (existingBars.length === 7) {
+  data.days.forEach((val, i) => {
+    const bar = existingBars[i];
+    const oldUptime = parseInt(bar.dataset.uptime || "0", 10);
 
-      const percentHeight = Math.max(1, (val / scaleMax) * 100);
+    const percentHeight = Math.max(1, (val / scaleMax) * 100);
 
-      if (val !== oldUptime) {
-        const bounceHeight = percentHeight * 1.05;
+    if (val !== oldUptime) {
+      const bounceHeight = percentHeight * 1.05;
 
-        // Step 1: Slightly overshoot (even if shrinking)
-        bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        setTimeout(() => {
-          bar.style.height = `${bounceHeight}%`;
-
-          // Step 2: Bounce back or shrink
-          setTimeout(() => {
-            bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-            bar.style.height = `${percentHeight}%`;
-          }, 300);
-        }, i * 100);
-      } else {
-        // 🔁 Even if unchanged, make sure height stays in sync (e.g. after scaleMax change)
-        bar.style.height = `${percentHeight}%`;
-      }
-
-      // Always update the stored uptime
-      bar.dataset.uptime = val;
-    });
-  } else {
-    // Create new bars
-    container.innerHTML = '';
-    data.days.forEach((val, i) => {
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.style.height = '0%';
+      // Step 1: Slightly overshoot (even if shrinking)
       bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-      bar.dataset.index = i;
-      bar.dataset.uptime = val;
-      bar.style.backgroundColor = (val === 0) ? '#4a558e' : (i === 0) ? '#7349ff' : '#00ffff';
-
-      const label = document.createElement('div');
-      label.className = 'bar-label';
-      label.textContent = labels[i];
-      bar.appendChild(label);
-      container.appendChild(bar);
-
-      // Bounce effect on initial grow
       setTimeout(() => {
-        const percentHeight = Math.max(1, (val / scaleMax) * 100);
-        const bounceHeight = percentHeight * 1.05;
-
-        // Step 1: Overshoot
         bar.style.height = `${bounceHeight}%`;
 
-        // Step 2: Settle back
+        // Step 2: Bounce back or shrink
         setTimeout(() => {
           bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
           bar.style.height = `${percentHeight}%`;
         }, 300);
-      }, 30 + i * 100); // Wave effect: staggered by 100ms for each bar
-    });
-  }
+      }, i * 100);
+    } else {
+      // 🔁 Even if unchanged, make sure height stays in sync (e.g. after scaleMax change)
+      bar.style.height = `${percentHeight}%`;
+    }
+
+    // Always update the stored uptime
+    bar.dataset.uptime = val;
+  });
+} else {
+  // Create new bars
+  container.innerHTML = '';
+  data.days.forEach((val, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = '0%';
+    bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    bar.dataset.index = i;
+    bar.dataset.uptime = val;
+    // Color: today (rightmost) is i === 6
+    bar.style.backgroundColor = (val === 0) ? '#4a558e' : (i === 6) ? '#7349ff' : '#00ffff';
+
+    const label = document.createElement('div');
+    label.className = 'bar-label';
+    label.textContent = labels[i];
+    bar.appendChild(label);
+    container.appendChild(bar);
+
+    // Bounce effect on initial grow
+    setTimeout(() => {
+      const percentHeight = Math.max(1, (val / scaleMax) * 100);
+      const bounceHeight = percentHeight * 1.05;
+
+      // Step 1: Overshoot
+      bar.style.height = `${bounceHeight}%`;
+
+      // Step 2: Settle back
+      setTimeout(() => {
+        bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        bar.style.height = `${percentHeight}%`;
+      }, 300);
+    }, 30 + i * 100); // Wave effect: staggered by 100ms for each bar
+  });
+}
+
 
   // Today is now at index 6 (rightmost)
 const todayMin = data.days[6];
