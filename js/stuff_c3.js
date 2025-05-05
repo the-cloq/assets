@@ -121,25 +121,38 @@ function updateChart(data) {
   const total = data.days.reduce((a, b) => a + b, 0);
   const avg = total / 7;
 
-  let weeklyChange = 0;
-  let weeklyChangeText = '';
-
-const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
-const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
-
-if (lastWeek === 0) {  
-  if (thisWeek === 0) {
-    weeklyChangeText = '0%';
-  } else {
-    weeklyChangeText = 'N/A';
+  function formatMinutes(mins) {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
   }
-} else {
-  weeklyChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
-  const changeArrow = weeklyChange >= 0 
-    ? '<span style="color:#00FF00;">▲</span>' 
-    : '<span style="color:#FF0000;">▼</span>';
-  weeklyChangeText = `${changeArrow} ${Math.abs(weeklyChange)}%`;
-}
+  
+  let weeklyChangeText = '';
+  
+  const lastWeek = data.lastWeek || 0; // Default to zero if no value is provided
+  const thisWeek = data.thisWeek || 0; // Default to zero if no value is provided
+  
+  const diff = thisWeek - lastWeek;
+  
+  if (lastWeek === 0) {
+    if (thisWeek === 0) {
+      weeklyChangeText = 'No change';
+    } else {
+      weeklyChangeText = `Up ${formatMinutes(thisWeek)}`;
+    }
+  } else if (diff > 0) {
+    // More uptime (adjust color as you wish)
+    weeklyChangeText = `<span style="color:#FF0000;">▲ Up ${formatMinutes(diff)}</span>`;
+  } else if (diff < 0) {
+    // Less uptime (green, as you prefer)
+    weeklyChangeText = `<span style="color:#00FF00;">▼ Down ${formatMinutes(-diff)}</span>`;
+  } else {
+    weeklyChangeText = 'No change';
+  }
+  
 
   const changeArrow = weeklyChange >= 0 ? '▲' : '▼';
   const changeColor = weeklyChange >= 0 ? '#00FF00' : '#FF0000';
