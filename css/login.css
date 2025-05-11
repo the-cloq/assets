@@ -1,17 +1,83 @@
-.login {
+body {
+    height: 100%;
+    font-family: Inter, Tahoma, Sans-Serif;
+    margin: 50px;
+    background: #111319;
+    letter-spacing: 0.5;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-y: scroll;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  body:after {
+    content: "";
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    display: block;
+    background: radial-gradient(
+        circle at 31% 34%,
+        rgba(17, 82, 102, 1),
+        rgba(17, 82, 102, 0) 50%
+      ),
+      radial-gradient(circle at 10% 10%, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 50%),
+      radial-gradient(circle at 90% 10%, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 50%),
+      radial-gradient(circle at 81% 93%, rgb(24 65 85), rgba(20, 13, 44, 0) 50%),
+      radial-gradient(circle at 1% 99%, rgb(11 101 129), rgba(93, 0, 96, 0) 50%);
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  .container {
     text-align: center;
     display: flex;
     flex-direction: column;
     width: 100%;
   }
-  .login p {
+  .container p {
     color: #ffffff94;
     font-size: 13px;
   }
-  .login_title {
+  .title {
     font-size: 16px;
     margin-bottom: 15px;
     color: #fff;
+  }
+  .input-field {
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    letter-spacing: 4px;
+    text-align: center;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 15px 0;
+    background: 0 0;
+    outline: 0;
+    border: none;
+    color: #06a7a5;
+    font-size: 22px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #00000080;
+    border-radius: 0;
+  }
+  
+  input[type="text"]:focus {
+    outline: none;
+    color: #fff;
+    border-bottom: 1px solid #06a7a5;
   }
   
   .login-button {
@@ -32,5 +98,18 @@
   }
   .login-button:hover:enabled {
     background-color: #00bbb9;
+  }
+  
+  .box {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    background-color: #ffffff0a;
+    padding: 20px;
+    position: relative;
+    border-radius: 5px;
+    width: 335px;
+    box-shadow: 0px 20px 10px 5px rgb(0 0 0 / 5%);
+    border-top: 1px solid #ffffff1c;
   }
   
