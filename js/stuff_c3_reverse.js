@@ -138,14 +138,30 @@ function formatMinutes(mins) {
 }
 
 let weeklyChangeText = '';
-if (weeklyChange > 0) {
-  weeklyChangeText = `<span style="color:white;">` +
-    `<span style="color:#FFB200;">▲</span> ${formatMinutes(weeklyChange)}</span>`;
-} else if (weeklyChange < 0) {
-  weeklyChangeText = `<span style="color:white;">` +
-    `<span style="color:#00FF00;">▼</span> ${formatMinutes(-weeklyChange)}</span>`;
+
+if (currentChartMode === "time") {
+  // Time Mode: Weekly change in minutes/hours
+  if (weeklyChange > 0) {
+    weeklyChangeText = `<span style="color:white;">` +
+      `<span style="color:#FFB200;">▲</span> ${formatMinutes(weeklyChange)}</span>`;
+  } else if (weeklyChange < 0) {
+    weeklyChangeText = `<span style="color:white;">` +
+      `<span style="color:#00FF00;">▼</span> ${formatMinutes(-weeklyChange)}</span>`;
+  } else {
+    weeklyChangeText = '<span style="color:white;">No change</span>';
+  }
 } else {
-  weeklyChangeText = '<span style="color:white;">No change</span>';
+  // Cost Mode: Weekly change in cost
+  const weeklyChangeCost = (weeklyChange / 60) * (3.75 / 1000) * userPrice; // Calculate cost difference
+  if (weeklyChangeCost > 0) {
+    weeklyChangeText = `<span style="color:white;">` +
+      `<span style="color:#FFB200;">▲</span> ${formatCost(weeklyChangeCost)}</span>`;
+  } else if (weeklyChangeCost < 0) {
+    weeklyChangeText = `<span style="color:white;">` +
+      `<span style="color:#00FF00;">▼</span> ${formatCost(-weeklyChangeCost)}</span>`;
+  } else {
+    weeklyChangeText = '<span style="color:white;">No change</span>';
+  }
 }
 
 const totalKWh = (total / 60) * (3.75 / 1000);
@@ -155,13 +171,14 @@ summaryUptime.innerHTML = currentChartMode === "time"
   ? `
     <div class="uptime-left"><span>Total</span><br>${Math.floor(total/60)}h ${total%60}m</div>
     <div class="uptime-center"><span>Daily Avg</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
-    <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
+    <div class="uptime-right"><span>Since Last Week</span><br>${weeklyChangeText}</div>
     `
   : `
     <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
     <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
-    <div class="uptime-right"><span>Last Week</span><br>${weeklyChangeText}</div>
+    <div class="uptime-right"><span>Since Last Week</span><br>${weeklyChangeText}</div>
     `;
+
 
 // 🛠 Show floating toast if weekly message exists
 if (data.weeklyMsg) {
