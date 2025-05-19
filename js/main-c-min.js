@@ -452,10 +452,16 @@ function updateDarkMode() {
     const now = new Date();
     const localNow = new Date(now.getTime() + timezoneOffset * 1000);
 
+    console.log('Current Time:', localNow);
+    console.log('Sunrise:', sunriseTime);
+    console.log('Sunset:', sunsetTime);
+
     if (localNow < sunriseTime || localNow > sunsetTime) {
         document.body.classList.add("darkmode");
+        console.log('Dark mode ON');
     } else {
         document.body.classList.remove("darkmode");
+        console.log('Dark mode OFF');
     }
 }
 header.addEventListener("click", (() => {
