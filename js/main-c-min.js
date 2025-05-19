@@ -446,6 +446,18 @@ function fetchUptimeHistory() {
         document.querySelector(".summary").textContent = `Weekly avg: ${o} min — ${i}`
     }))
 }
+function updateDarkMode() {
+    if (!sunriseTime || !sunsetTime) return;
+
+    const now = new Date();
+    const localNow = new Date(now.getTime() + timezoneOffset * 1000);
+
+    if (localNow < sunriseTime || localNow > sunsetTime) {
+        document.body.classList.add("darkmode");
+    } else {
+        document.body.classList.remove("darkmode");
+    }
+}
 header.addEventListener("click", (() => {
     const e = accordion.querySelector(".accordion-content");
     accordion.classList.toggle("open"), accordion.classList.contains("open") ? e.style.maxHeight = e.scrollHeight + "px" : e.style.maxHeight = "0"
