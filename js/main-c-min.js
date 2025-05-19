@@ -446,24 +446,6 @@ function fetchUptimeHistory() {
         document.querySelector(".summary").textContent = `Weekly avg: ${o} min — ${i}`
     }))
 }
-function updateDarkMode() {
-    if (!sunriseTime || !sunsetTime) return;
-
-    const now = new Date();
-    const localNow = new Date(now.getTime() + timezoneOffset * 1000);
-
-    console.log('Current Time:', localNow);
-    console.log('Sunrise:', sunriseTime);
-    console.log('Sunset:', sunsetTime);
-
-    if (localNow < sunriseTime || localNow > sunsetTime) {
-        document.body.classList.add("darkmode");
-        console.log('Dark mode ON');
-    } else {
-        document.body.classList.remove("darkmode");
-        console.log('Dark mode OFF');
-    }
-}
 header.addEventListener("click", (() => {
     const e = accordion.querySelector(".accordion-content");
     accordion.classList.toggle("open"), accordion.classList.contains("open") ? e.style.maxHeight = e.scrollHeight + "px" : e.style.maxHeight = "0"
