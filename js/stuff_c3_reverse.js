@@ -120,15 +120,13 @@ if (existingBars.length === 7) {
   });
 }
 
-
-  // Today is now at index 6 (rightmost)
-const todayMin = data.days[6];
-const total = data.days.reduce((a, b) => a + b, 0);
-const avg = total / 7;
-
-const lastWeek = Number(data.lastWeek) || 0;
 const thisWeek = Number(data.thisWeek) || 0;
-const weeklyChange = thisWeek - lastWeek;
+const lastWeek = Number(data.lastWeek) || 0;
+const avg = thisWeek / 7;
+
+const thisWeekKWh = (thisWeek / 60) * (3.75 / 1000);
+const avgKWh = (avg / 60) * (3.75 / 1000);
+const lastWeekKWh = (lastWeek / 60) * (3.75 / 1000);
 
 function formatMinutes(mins) {
   mins = Math.round(mins);
@@ -137,48 +135,17 @@ function formatMinutes(mins) {
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
-let weeklyChangeText = '';
-
-if (currentChartMode === "time") {
-  // Time Mode: Weekly change in minutes/hours
-  if (weeklyChange > 0) {
-    weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#FFB200;">▲</span> ${formatMinutes(weeklyChange)}</span>`;
-  } else if (weeklyChange < 0) {
-    weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#00FF00;">▼</span> ${formatMinutes(-weeklyChange)}</span>`;
-  } else {
-    weeklyChangeText = '<span style="color:white;">No change</span>';
-  }
-} else {
-  // Cost Mode: Weekly change in cost
-  const weeklyChangeCost = (weeklyChange / 60) * (3.75 / 1000) * userPrice; // Calculate cost difference
-  if (weeklyChangeCost > 0) {
-    weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#FFB200;">▲</span> ${formatCost(weeklyChangeCost)}</span>`;
-  } else if (weeklyChangeCost < 0) {
-    weeklyChangeText = `<span style="color:white;">` +
-      `<span style="color:#00FF00;">▼</span> ${formatCost(-weeklyChangeCost)}</span>`;
-  } else {
-    weeklyChangeText = '<span style="color:white;">No change</span>';
-  }
-}
-
-const totalKWh = (total / 60) * (3.75 / 1000);
-const avgKWh = (avg / 60) * (3.75 / 1000);
-
 summaryUptime.innerHTML = currentChartMode === "time"
   ? `
-    <div class="uptime-left"><span>Total</span><br>${Math.floor(total/60)}h ${total%60}m</div>
-    <div class="uptime-center"><span>Daily Avg</span><br>${Math.floor(avg/60)}h ${Math.round(avg%60)}m</div>
-    <div class="uptime-right"><span>Since L/Week</span><br>${weeklyChangeText}</div>
-    `
+    <div class="uptime-left"><span>This Week</span><br>${formatMinutes(thisWeek)}</div>
+    <div class="uptime-center"><span>Daily Avg</span><br>${formatMinutes(avg)}</div>
+    <div class="uptime-right"><span>Last Week</span><br>${formatMinutes(lastWeek)}</div>
+  `
   : `
-    <div class="uptime-left"><span>Total</span><br>${formatCost(totalKWh * userPrice)}</div>
+    <div class="uptime-left"><span>This Week</span><br>${formatCost(thisWeekKWh * userPrice)}</div>
     <div class="uptime-center"><span>Daily Avg</span><br>${formatCost(avgKWh * userPrice)}</div>
-    <div class="uptime-right"><span>Since L/Week</span><br>${weeklyChangeText}</div>
-    `;
-
+    <div class="uptime-right"><span>Last Week</span><br>${formatCost(lastWeekKWh * userPrice)}</div>
+  `;
 
 // 🛠 Show floating toast if weekly message exists
 if (data.weeklyMsg) {
@@ -303,7 +270,6 @@ function fetchUptimeData() {
       spinner.style.display = 'none'; // Hide spinner after chart updates
     });
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
   fetchUptimeData();
