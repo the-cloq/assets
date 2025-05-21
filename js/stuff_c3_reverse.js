@@ -35,7 +35,11 @@ const todayVal = data.days[6];
 const hours = Math.floor(todayVal / 60);
 const minutes = todayVal % 60;
 const kWh = (todayVal / 60) * (3.75 / 1000); // assuming 3.75W
-const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.27);
+
+// Dynamic user price
+const priceInput = document.getElementById("priceperkwh");
+const userPrice = parseFloat(priceInput?.value || 0.27); // Default to 0.27 if input is empty
+//const userPrice = parseFloat(document.getElementById("price-per-kwh")?.value || 0.27);
 staticValue.textContent = currentChartMode === "time"
   ? `${hours}h ${minutes}m`
   : formatCost(kWh * userPrice);
