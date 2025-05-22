@@ -371,10 +371,11 @@ function resetPosition() {
     fanenContent.style.transform = getCurrentOffset() === 0 ? 'translateX(0)' : 'translateX(-50%)';
 }
 
-// Function to flip the card
-function flipCard() {
-    const card = document.getElementById('flipCard');
-    card.classList.toggle('flip');
+function flipCard(element) {
+    const card = element.closest(".card");
+    if (card) {
+        card.classList.toggle("flip");
+    }
 }
 
 // OpenWeatherMap Sunrise/Sunset Widget
