@@ -1,7 +1,7 @@
 (() => {
   const dial = document.getElementById('dial');
   const displayPricePerKwh = document.getElementById('display-priceperkwh');
-  const hiddenPricePerKwh = document.getElementById('hidden-priceperkwh');
+  const hiddenPricePerKwh = document.getElementById('priceperkwh');
 
   const tickWidth = 30;       // px between ticks
   const step = 1;             // increment per tick
