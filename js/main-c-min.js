@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("settings");
     const submitBtn = document.getElementById("submitBtn");
-    const myinputs = form.querySelectorAll("input");
+    //const myinputs = form.querySelectorAll("input");
+    const myinputs = form.querySelectorAll('input:not([name="view-mode"])');
     const sliders = document.querySelectorAll(".slider_wrap div");
 
     var brightness = document.getElementById("brightness"),
