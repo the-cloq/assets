@@ -696,7 +696,6 @@ document.addEventListener("DOMContentLoaded", function () {
           });
       }
       
-      document.addEventListener("DOMContentLoaded", fetchUptimeHistory);
       
     // --- Price Dial Logic ---
     (() => {
