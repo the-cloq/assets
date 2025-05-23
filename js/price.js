@@ -68,7 +68,7 @@
     const value = tickIndex * step;
 
     // Update the hidden value and display
-    displayPricePerKwh.textContent = value.toFixed(2);
+    displayPricePerKwh.textContent = value.toFixed(2) + 'p';
     hiddenPricePerKwh.value = value.toFixed(2);
 
     // Adjust translateX to keep the dial centered for seamless looping
