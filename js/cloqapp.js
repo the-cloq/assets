@@ -669,33 +669,121 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         });
       }
-      function fetchUptimeHistory() {
+    // --- System Info and Uptime Bar Logic ---
+    function loadSystemInfo() {
+        fetch('/system-info')
+            .then(res => res.json())
+            .then(info => {
+                const freeHeap = info.freeHeap;         // bytes
+                const frag = info.heapFragmentation;    // percent
+                const maxBlock = info.maxFreeBlockSize;  // bytes
+                const uptime = info.uptime;              // optional uptime field
+
+                const maxHeap = 50000; // Estimated max heap (adjust if needed)
+
+                // Calculate scaled percentages
+                const heapPercent = Math.min((freeHeap / maxHeap) * 100, 100);
+                const fragPercent = Math.min((frag / 50) * 100, 100);
+                const blockPercent = Math.min((maxBlock / maxHeap) * 100, 100);
+
+                // Update Free Heap bar
+                const heapFill = document.getElementById('heapFill');
+                heapFill.style.height = `${heapPercent}%`;
+                document.getElementById('heapValue').textContent = (freeHeap / 1024).toFixed(1) + 'kb';
+
+                // Update Fragmentation bar
+                const fragFill = document.getElementById('fragFill');
+                fragFill.style.height = `${fragPercent}%`;
+                document.getElementById('fragValue').textContent = frag + '%';
+
+                if (frag > 50) {
+                    fragFill.style.background = 'linear-gradient(to top, #f44336, #e57373)'; // Red
+                } else if (frag > 30) {
+                    fragFill.style.background = 'linear-gradient(to top, #ff9800, #ffc107)'; // Yellow
+                } else {
+                    fragFill.style.background = '#00FFFF'; // Cyan/green normal
+                }
+
+                // Update Max Free Block bar
+                const blockFill = document.getElementById('blockFill');
+                blockFill.style.height = `${blockPercent}%`;
+                document.getElementById('blockValue').textContent = (maxBlock / 1024).toFixed(1) + 'kb';
+
+                // Update Memory Status
+                const memoryStatus = document.getElementById('memoryStatusText');
+                if (frag > 50) {
+                    memoryStatus.textContent = 'Poor';
+                    memoryStatus.style.color = 'red';
+                } else if (frag > 30) {
+                    memoryStatus.textContent = 'Warning';
+                    memoryStatus.style.color = 'orange';
+                } else {
+                    memoryStatus.textContent = 'Excellent';
+                    memoryStatus.style.color = '#ffffff';
+                }
+
+                // ✅ Now adjust bar labels AFTER all fills are set
+                adjustBarLabels();
+            })
+            .catch(err => console.error(err));
+    }
+
+    function adjustBarLabels() {
+        const allBars = document.querySelectorAll('.bar-fill');
+        allBars.forEach(bar => {
+            const label = bar.querySelector('.bar-value');
+            const barHeight = bar.offsetHeight;
+            if (label) {
+                if (barHeight < 30) {
+                    // If the bar is very short, float label above
+                    label.style.position = 'absolute';
+                    label.style.bottom = '100%';
+                    label.style.marginBottom = '5px';
+                    label.style.color = 'white';
+                } else {
+                    // Normal tall bar: label inside
+                    label.style.position = 'static';
+                    label.style.marginBottom = '5px';
+                    label.style.color = 'black';
+                }
+            }
+        });
+    }
+
+    function fetchUptimeHistory() {
         fetch("/uptime-history")
-          .then(res => res.json())
-          .then(data => {
-            const container = document.querySelector(".bar-container");
-            container.innerHTML = "";
-      
-            const max = Math.max(...data.days);
-            const avg = data.avg;
-            const lastWeekAvg = parseInt(localStorage.getItem("lastWeekAvg") || avg);
-            localStorage.setItem("lastWeekAvg", avg);
-      
-            data.days.forEach(min => {
-              const bar = document.createElement("div");
-              bar.className = "bar";
-              bar.style.height = (min / max * 100) + "%";
-              bar.dataset.min = min;
-              container.appendChild(bar);
+            .then(res => res.json())
+            .then(data => {
+                const container = document.querySelector(".bar-container");
+                if (!container) return;
+                container.innerHTML = "";
+
+                const max = Math.max(...data.days);
+                const avg = data.avg;
+                const lastWeekAvg = parseInt(localStorage.getItem("lastWeekAvg") || avg);
+                localStorage.setItem("lastWeekAvg", avg);
+
+                data.days.forEach(min => {
+                    const bar = document.createElement("div");
+                    bar.className = "bar";
+                    bar.style.height = (min / max * 100) + "%";
+                    bar.dataset.min = min;
+                    container.appendChild(bar);
+                });
+
+                const diff = avg - lastWeekAvg;
+                const diffText = diff === 0 ? "No change from last week." :
+                    diff > 0 ? `Up by ${diff} minutes.` : `Down by ${Math.abs(diff)} minutes.`;
+                const summary = document.querySelector(".summary");
+                if (summary) {
+                    summary.textContent = `Weekly avg: ${avg} min — ${diffText}`;
+                }
             });
-      
-            const diff = avg - lastWeekAvg;
-            const diffText = diff === 0 ? "No change from last week." :
-                             diff > 0 ? `Up by ${diff} minutes.` : `Down by ${Math.abs(diff)} minutes.`;
-            document.querySelector(".summary").textContent = `Weekly avg: ${avg} min — ${diffText}`;
-          });
-      }
-      
+    }
+
+    // --- Call your functions as needed ---
+    loadSystemInfo();
+    fetchUptimeHistory();
       
     // --- Price Dial Logic ---
     (() => {
