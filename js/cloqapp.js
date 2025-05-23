@@ -669,6 +669,51 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         });
       }
+    
+       // JavaScript to toggle the accordion open and closed
+   const accordion = document.querySelector('.accordion');
+   const header = accordion.querySelector('.accordion-header');
+
+   header.addEventListener('click', () => {
+     const content = accordion.querySelector('.accordion-content');
+     accordion.classList.toggle('open');
+
+     // Manually handle max-height transition on open/close
+     if (accordion.classList.contains('open')) {
+       content.style.maxHeight = content.scrollHeight + 'px'; // Set max-height to content's natural height
+     } else {
+       content.style.maxHeight = '0'; // Collapse content smoothly
+     }
+   });
+
+function fetchUptimeHistory() {
+  fetch("/uptime-history")
+    .then(res => res.json())
+    .then(data => {
+      const container = document.querySelector(".bar-container");
+      container.innerHTML = "";
+
+      const max = Math.max(...data.days);
+      const avg = data.avg;
+      const lastWeekAvg = parseInt(localStorage.getItem("lastWeekAvg") || avg);
+      localStorage.setItem("lastWeekAvg", avg);
+
+      data.days.forEach(min => {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = (min / max * 100) + "%";
+        bar.dataset.min = min;
+        container.appendChild(bar);
+      });
+
+      const diff = avg - lastWeekAvg;
+      const diffText = diff === 0 ? "No change from last week." :
+                       diff > 0 ? `Up by ${diff} minutes.` : `Down by ${Math.abs(diff)} minutes.`;
+      document.querySelector(".summary").textContent = `Weekly avg: ${avg} min — ${diffText}`;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", fetchUptimeHistory);
 
     // --- Price Dial Logic ---
     (() => {
