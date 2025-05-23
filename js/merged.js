@@ -1,98 +1,6 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // ===== Form Change Detection Logic =====
-    const form = document.getElementById("settings");
-    const submitBtn = document.getElementById("submitBtn");
-    const myinputs = form.querySelectorAll("input");
-    const sliders = document.querySelectorAll(".slider_wrap div");
-
-    // Form control elements
-    var brightness = document.getElementById("brightness"),
-        sensor_timer = document.getElementById("sensor_timer"),
-        summer_offset = document.getElementById("summer_offset"),
-        winter_offset = document.getElementById("winter_offset"),
-        cool = document.getElementById("cool"),
-        warm = document.getElementById("warm"),
-        hot = document.getElementById("hot"),
-        inputs = [cool, warm, hot],
-        led = [brightness],
-        timer = [sensor_timer],
-        summOff = [summer_offset],
-        wintOff = [winter_offset],
-        br = brightness.value,
-        st = sensor_timer.value,
-        so = summer_offset.value,
-        wo = winter_offset.value,
-        c = cool.value,
-        w = warm.value,
-        h = hot.value;
-
-    // Map to store original values
-    let originalValues = new Map();
-
-    // Slider configurations
-    const sliderConfigs = [
-        { id: "slider1", start: [br], range: { min: 0, max: 50 }, inputId: "brightness", padding: [1, 0] },
-        { id: "slider2", start: [st], range: { min: 0, max: 15 }, inputId: "sensor_timer", padding: [1, 0] },
-        { id: "slider3", start: [c, w, h], range: { min: 0, max: 40 }, inputIds: ["cool", "warm", "hot"], connect: [true, true, true, true], padding: [0, 0] },
-        { id: "slider4", start: [so], range: { min: -12, max: 12 }, inputId: "summer_offset", padding: [1, 1] },
-        { id: "slider5", start: [wo], range: { min: -12, max: 12 }, inputId: "winter_offset", padding: [1, 1] }
-    ];
-
-    // Initialize NoUiSliders
-    sliders.forEach((slider, index) => {
-        const config = sliderConfigs[index];
-
-        noUiSlider.create(slider, {
-            start: config.start,
-            range: config.range,
-            tooltips: true,
-            connect: config.connect || [true, false],
-            padding: config.padding || [0, 0], // Disable edges
-            format: {
-                to: value => Math.round(value),
-                from: value => Number(value)
-            }
-        });
-
-        // Store original values
-        originalValues.set(slider, slider.noUiSlider.get());
-
-        // Update corresponding input when slider changes
-        if (Array.isArray(config.inputIds)) {
-            slider.noUiSlider.on("update", function (values) {
-                config.inputIds.forEach((inputId, idx) => {
-                    document.getElementById(inputId).value = values[idx];
-                });
-            });
-        } else {
-            slider.noUiSlider.on("update", function (values) {
-                document.getElementById(config.inputId).value = values;
-            });
-        }
-
-        // Update slider when input changes
-        if (Array.isArray(config.inputIds)) {
-            config.inputIds.forEach((inputId, idx) => {
-                document.getElementById(inputId).addEventListener("input", function () {
-                    let newValues = config.inputIds.map(id => document.getElementById(id).value);
-                    slider.noUiSlider.set(newValues);
-                    checkChanges();
-                });
-            });
-        } else {
-            document.getElementById(config.inputId).addEventListener("input", function () {
-                slider.noUiSlider.set(this.value);
-                checkChanges();
-            });
-        }
-    });
-
-    // Store initial values for inputs
-    myinputs.forEach(input => {
-        originalValues.set(input, input.type === "checkbox" || input.type === "radio" ? input.checked : input.value);
-    });
-
-    // ===== Price Dial Implementation =====
+// ===== START OF PRICE DIAL IMPLEMENTATION (from price.js) =====
+// Wrap in self-executing function to avoid variable conflicts
+(function priceDial() {
     const dial = document.getElementById('dial');
     const displayPricePerKwh = document.getElementById('display-priceperkwh');
     const hiddenPricePerKwh = document.getElementById('priceperkwh');
@@ -209,13 +117,113 @@ document.addEventListener("DOMContentLoaded", function () {
         dial.style.transition = 'transform 0.3s ease-out';
         dial.style.transform = `translateX(${currentTranslateX}px)`;
     }
-    
-    // Initialize price dial and add to change tracking
-    if (hiddenPricePerKwh) {
-        originalValues.set(hiddenPricePerKwh, hiddenPricePerKwh.value);
-    }
-    
-    // ===== Function to check for changes in all form elements =====
+  
+    createTicks();
+    initializeDial();
+  
+    dial.addEventListener('mousedown', onDragStart);
+    dial.addEventListener('touchstart', onDragStart, { passive: false });
+    window.addEventListener('mousemove', onDragMove);
+    window.addEventListener('touchmove', onDragMove, { passive: false });
+    window.addEventListener('mouseup', onDragEnd);
+    window.addEventListener('touchend', onDragEnd);
+  
+    updateValueFromTranslateX(currentTranslateX);
+})();
+// ===== END OF PRICE DIAL IMPLEMENTATION =====
+
+// ===== START OF MAIN.JS IMPLEMENTATION =====
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("settings");
+    const submitBtn = document.getElementById("submitBtn");
+    const myinputs = form.querySelectorAll("input");
+    const sliders = document.querySelectorAll(".slider_wrap div");
+
+    var brightness = document.getElementById("brightness"),
+        sensor_timer = document.getElementById("sensor_timer"),
+        summer_offset = document.getElementById("summer_offset"),
+        winter_offset = document.getElementById("winter_offset"),
+        cool = document.getElementById("cool"),
+        warm = document.getElementById("warm"),
+        hot = document.getElementById("hot"),
+        inputs = [cool, warm, hot],
+        led = [brightness],
+        timer = [sensor_timer],
+        summOff = [summer_offset],
+        wintOff = [winter_offset],
+        br = brightness.value,
+        st = sensor_timer.value,
+        so = summer_offset.value,
+        wo = winter_offset.value,
+        c = cool.value,
+        w = warm.value,
+        h = hot.value;
+
+    let originalValues = new Map();
+
+    // Slider configurations
+    const sliderConfigs = [
+        { id: "slider1", start: [br], range: { min: 0, max: 50 }, inputId: "brightness", padding: [1, 0] },
+        { id: "slider2", start: [st], range: { min: 0, max: 15 }, inputId: "sensor_timer", padding: [1, 0] },
+        { id: "slider3", start: [c, w, h], range: { min: 0, max: 40 }, inputIds: ["cool", "warm", "hot"], connect: [true, true, true, true], padding: [0, 0] },
+        { id: "slider4", start: [so], range: { min: -12, max: 12 }, inputId: "summer_offset", padding: [1, 1] },
+        { id: "slider5", start: [wo], range: { min: -12, max: 12 }, inputId: "winter_offset", padding: [1, 1] }
+    ];
+
+    // Initialize NoUiSliders
+    sliders.forEach((slider, index) => {
+        const config = sliderConfigs[index];
+
+        noUiSlider.create(slider, {
+            start: config.start,
+            range: config.range,
+            tooltips: true,
+            connect: config.connect || [true, false],
+            padding: config.padding || [0, 0], // Disable edges
+            format: {
+                to: value => Math.round(value),
+                from: value => Number(value)
+            }
+        });
+
+        // Store original values
+        originalValues.set(slider, slider.noUiSlider.get());
+
+        // Update corresponding input when slider changes
+        if (Array.isArray(config.inputIds)) {
+            slider.noUiSlider.on("update", function (values) {
+                config.inputIds.forEach((inputId, idx) => {
+                    document.getElementById(inputId).value = values[idx];
+                });
+            });
+        } else {
+            slider.noUiSlider.on("update", function (values) {
+                document.getElementById(config.inputId).value = values;
+            });
+        }
+
+        // Update slider when input changes
+        if (Array.isArray(config.inputIds)) {
+            config.inputIds.forEach((inputId, idx) => {
+                document.getElementById(inputId).addEventListener("input", function () {
+                    let newValues = config.inputIds.map(id => document.getElementById(id).value);
+                    slider.noUiSlider.set(newValues);
+                    checkChanges();
+                });
+            });
+        } else {
+            document.getElementById(config.inputId).addEventListener("input", function () {
+                slider.noUiSlider.set(this.value);
+                checkChanges();
+            });
+        }
+    });
+
+    // Store initial values for inputs
+    myinputs.forEach(input => {
+        originalValues.set(input, input.type === "checkbox" || input.type === "radio" ? input.checked : input.value);
+    });
+
     function checkChanges() {
         let changed = false;
 
@@ -249,101 +257,96 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Add event listeners to form inputs
     myinputs.forEach(input => input.addEventListener("input", checkChanges));
     sliders.forEach(slider => slider.noUiSlider.on("update", checkChanges));
-    
-    // Initialize price dial controls
-    createTicks();
-    initializeDial();
-  
-    dial.addEventListener('mousedown', onDragStart);
-    dial.addEventListener('touchstart', onDragStart, { passive: false });
-    window.addEventListener('mousemove', onDragMove);
-    window.addEventListener('touchmove', onDragMove, { passive: false });
-    window.addEventListener('mouseup', onDragEnd);
-    window.addEventListener('touchend', onDragEnd);
-    
-    // Form submission with overlay
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('settings');
+    const submitBtn = document.getElementById('submitBtn');
     const overlay = document.getElementById('overlay');
   
+    if (!form || !submitBtn || !overlay) {
+      console.error('Required elements not found.');
+      return;
+    }
+  
+    // Display overlay when form is submitted
     form.addEventListener('submit', function (event) {
-        event.preventDefault(); // Prevent default form submission
-    
-        // Hide the submit button
-        submitBtn.style.display = 'none';
-    
-        // Display the overlay and spinner
-        overlay.classList.add('reveal');
-        submitBtn.disabled = true;
-    
-        const formData = new FormData(form);
-    
-        fetch(form.action, {
-            method: 'POST',
-            body: formData
-        })
+      event.preventDefault(); // Prevent default form submission
+  
+      // Hide the submit button
+      submitBtn.style.display = 'none';
+  
+      // Display the overlay and spinner
+      overlay.classList.add('reveal');
+      submitBtn.disabled = true;
+  
+      const formData = new FormData(form);
+  
+      fetch(form.action, {
+        method: 'POST',
+        body: formData
+      })
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`Server responded with status ${response.status}`);
-            }
-            return response.text(); // Adjust based on your server's response format
+          if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
+          }
+          return response.text(); // Adjust based on your server's response format
         })
         .then(data => {
-            // Reload the page after a brief pause (optional for smoother transition)
-            setTimeout(() => {
-                window.location.reload();
-            }, 300); // Feel free to tweak the delay
+          // Reload the page after a brief pause (optional for smoother transition)
+          setTimeout(() => {
+            window.location.reload();
+          }, 300); // Feel free to tweak the delay
         })
         .catch(error => {
-            console.error('Form submission error:', error);
-            overlay.classList.remove('reveal');
-            submitBtn.style.display = 'block';
-            submitBtn.disabled = false;
-            // Optional: Display an error message to the user
+          console.error('Form submission error:', error);
+          overlay.classList.remove('reveal');
+          submitBtn.style.display = 'block';
+          submitBtn.disabled = false;
+          // Optional: Display an error message to the user
         });
     });
 });
 
 // Temperature Toggle Switcher
+const celciusRadio = document.getElementById("celcius");
+const fahrenheitRadio = document.getElementById("fahrenheit");
+
+const cel = document.getElementById("cel");
+const fah = document.getElementById("fah");
+
 function tempToggleBoxes() {
-    const celciusRadio = document.getElementById("celcius");
-    const fahrenheitRadio = document.getElementById("fahrenheit");
-    const cel = document.getElementById("cel");
-    const fah = document.getElementById("fah");
-    
     cel.style.display = celciusRadio.checked ? "block" : "none";
     fah.style.display = fahrenheitRadio.checked ? "block" : "none";
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll('.temp-toggles .radio-input').forEach(radio => {
-        radio.addEventListener('change', tempToggleBoxes);
-    });
-    // Initialize correct box visibility on page load
-    tempToggleBoxes();
+document.querySelectorAll('.temp-toggles .radio-input').forEach(radio => {
+    radio.addEventListener('change', tempToggleBoxes);
 });
+// Initialize correct box visibility on page load
+tempToggleBoxes();
 
 // DST Toggle Switcher
+const summerRadio = document.getElementById("summer");
+const winterRadio = document.getElementById("winter");
+
+const sumR = document.getElementById("sumR");
+const wintR = document.getElementById("wintR");
+
 function dstToggleBoxes() {
-    const summerRadio = document.getElementById("summer");
-    const winterRadio = document.getElementById("winter");
-    const sumR = document.getElementById("sumR");
-    const wintR = document.getElementById("wintR");
-    
     sumR.style.display = summerRadio.checked ? "block" : "none";
     wintR.style.display = winterRadio.checked ? "block" : "none";
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll('.dst-toggles .radio-input').forEach(radio => {
-        radio.addEventListener('change', dstToggleBoxes);
-    });
-    // Initialize correct box visibility on page load
-    dstToggleBoxes();
+document.querySelectorAll('.dst-toggles .radio-input').forEach(radio => {
+    radio.addEventListener('change', dstToggleBoxes);
 });
+// Initialize correct box visibility on page load
+dstToggleBoxes();
 
-// Tabs functionality
+
 ! function() {
     "use strict";
     document.getElementById("tabs");
@@ -366,11 +369,10 @@ document.addEventListener("DOMContentLoaded", function() {
     })), localStorage.length > 0) && n(document.getElementById(localStorage.getItem("lastTab")), i)
 }();
 
-// Utility functions
+
 function removeSpaces(string){return string.split(' ').join('');}
 function removeSpaceAfterComma(string){return string.replace(", ", ",");}
 
-// Date prototype extensions
 Date.prototype.stdTimezoneOffset = function () {
     var jan = new Date(this.getFullYear(), 0, 1);
     var jul = new Date(this.getFullYear(), 6, 1);
@@ -380,54 +382,48 @@ Date.prototype.stdTimezoneOffset = function () {
 Date.prototype.isDstObserved = function () {
     return this.getTimezoneOffset() < this.stdTimezoneOffset();
 }
-
-// Dark mode
-function update(){
-    Math.floor((new Date).getTime()/1e3);
-    document.body.className="darkmode";
-    requestAnimationFrame(update);
+/*
+var today = new Date();
+if (today.isDstObserved()) { 
+    dst.classList.add("show");
 }
-requestAnimationFrame(update);
+*/
 
-// Accordion functionality
-document.addEventListener("DOMContentLoaded", function() {
-    const accordionBtns = document.querySelectorAll(".accordion");
-    accordionBtns.forEach((accordion) => {
-        accordion.onclick = function () {
-            this.classList.toggle("is-open");
-            let content = this.nextElementSibling;
-            console.log(content);
-            if (content.style.maxHeight) {
-                content.style.maxHeight = null;
-            } else {
-                content.style.maxHeight = content.scrollHeight + "px";
-                console.log(content.style.maxHeight);
-            }
-        };
+function update(){Math.floor((new Date).getTime()/1e3);document.body.className="darkmode",requestAnimationFrame(update)}requestAnimationFrame(update);
+
+const accordionBtns = document.querySelectorAll(".accordion");
+accordionBtns.forEach((accordion) => {
+    accordion.onclick = function () {
+        this.classList.toggle("is-open");
+        let content = this.nextElementSibling;
+        console.log(content);
+        if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+        } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+            console.log(content.style.maxHeight);
+        }
+    };
+});
+
+const fanenContent = document.querySelector('.fanen-content');
+const faner = document.querySelectorAll('.fanen');
+const tabIndicator = document.querySelector('.fanen-indicator');
+
+faner.forEach((fanen, index) => {
+    fanen.addEventListener('click', () => {
+        faner.forEach(t => t.classList.remove('active'));
+        fanen.classList.add('active');
+
+        if (index === 0) {
+            switchToTab(1);
+        } else {
+            switchToTab(2);
+        }
     });
 });
 
-// Fanen tab functionality
-document.addEventListener("DOMContentLoaded", function() {
-    const fanenContent = document.querySelector('.fanen-content');
-    const faner = document.querySelectorAll('.fanen');
-    const tabIndicator = document.querySelector('.fanen-indicator');
-
-    faner.forEach((fanen, index) => {
-        fanen.addEventListener('click', () => {
-            faner.forEach(t => t.classList.remove('active'));
-            fanen.classList.add('active');
-
-            if (index === 0) {
-                switchToTab(1);
-            } else {
-                switchToTab(2);
-            }
-        });
-    });
-});
-
-// Swipe Support for tabs
+// Swipe Support
 let startX = 0;
 let currentX = 0;
 let startY = 0;
@@ -453,11 +449,8 @@ function moveSwipe(e) {
     if (Math.abs(diffX) > dragThreshold && Math.abs(diffX) > Math.abs(diffY)) {
         hasDragged = true;
         e.preventDefault(); // Prevent vertical scrolling
-        const fanenContent = document.querySelector('.fanen-content');
-        if (fanenContent) {
-            fanenContent.style.transition = 'none';
-            fanenContent.style.transform = `translateX(${getCurrentOffset() + diffX}px)`;
-        }
+        fanenContent.style.transition = 'none';
+        fanenContent.style.transform = `translateX(${getCurrentOffset() + diffX}px)`;
     }
 }
 
@@ -481,13 +474,16 @@ function endSwipe(e) {
     hasDragged = false;
 }
 
-// Utility Functions for tab swiping
+fanenContent.addEventListener('touchstart', startSwipe, { passive: false });
+fanenContent.addEventListener('touchmove', moveSwipe, { passive: false });
+fanenContent.addEventListener('touchend', endSwipe);
+
+fanenContent.addEventListener('pointerdown', startSwipe);
+fanenContent.addEventListener('pointermove', moveSwipe);
+fanenContent.addEventListener('pointerup', endSwipe);
+
+// Utility Functions
 function switchToTab(tabNumber) {
-    const fanenContent = document.querySelector('.fanen-content');
-    const tabIndicator = document.querySelector('.fanen-indicator');
-    
-    if (!fanenContent || !tabIndicator) return;
-    
     if (tabNumber === 1) {
         fanenContent.classList.remove('tab2-active');
         fanenContent.classList.add('tab1-active');
@@ -500,41 +496,18 @@ function switchToTab(tabNumber) {
 }
 
 function getCurrentOffset() {
-    const fanenContent = document.querySelector('.fanen-content');
-    if (!fanenContent) return 0;
-    
     const style = window.getComputedStyle(fanenContent);
     const matrix = new DOMMatrix(style.transform);
     return matrix.m41; // Get translateX value
 }
 
 function resetPosition() {
-    const fanenContent = document.querySelector('.fanen-content');
-    if (!fanenContent) return;
-    
     fanenContent.style.transition = 'transform 0.3s ease';
     fanenContent.style.transform = fanenContent.classList.contains('tab2-active') ? 
         'translateX(-100%)' : 'translateX(0)';
 }
 
-// Add swipe event listeners
-document.addEventListener("DOMContentLoaded", function() {
-    const fanenContent = document.querySelector('.fanen-content');
-    if (fanenContent) {
-        fanenContent.addEventListener('touchstart', startSwipe, { passive: false });
-        fanenContent.addEventListener('touchmove', moveSwipe, { passive: false });
-        fanenContent.addEventListener('touchend', endSwipe);
-        
-        fanenContent.addEventListener('pointerdown', startSwipe);
-        fanenContent.addEventListener('pointermove', moveSwipe);
-        fanenContent.addEventListener('pointerup', endSwipe);
-    }
-});
-
-// Card flip functionality
 function flipCard(element) {
-    if (!element) return;
-    
     // Find parent card
     let currentNode = element;
     while (currentNode && !currentNode.classList.contains('card')) {
@@ -545,3 +518,4 @@ function flipCard(element) {
         currentNode.classList.toggle('is-flipped');
     }
 }
+// ===== END OF MAIN.JS IMPLEMENTATION =====
