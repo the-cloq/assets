@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // --- Main Form and Slider Logic ---
     const form = document.getElementById("settings");
     const submitBtn = document.getElementById("submitBtn");
-    const myinputs = form.querySelectorAll("input");
+    // Add priceperkwh to the list of tracked inputs
+    const pricePerKwhInput = document.getElementById("priceperkwh");
+    const myinputs = [...form.querySelectorAll("input"), pricePerKwhInput];
     const sliders = document.querySelectorAll(".slider_wrap div");
-    const priceperkwh = document.getElementById("priceperkwh"); // Reference to the new input
 
     var brightness = document.getElementById("brightness"),
         sensor_timer = document.getElementById("sensor_timer"),
@@ -12,11 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
         cool = document.getElementById("cool"),
         warm = document.getElementById("warm"),
         hot = document.getElementById("hot"),
-        inputs = [cool, warm, hot],
-        led = [brightness],
-        timer = [sensor_timer],
-        summOff = [summer_offset],
-        wintOff = [winter_offset],
         br = brightness.value,
         st = sensor_timer.value,
         so = summer_offset.value,
@@ -36,26 +33,20 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: "slider5", start: [wo], range: { min: -12, max: 12 }, inputId: "winter_offset", padding: [1, 1] }
     ];
 
-    // Initialize NoUiSliders
     sliders.forEach((slider, index) => {
         const config = sliderConfigs[index];
-
         noUiSlider.create(slider, {
             start: config.start,
             range: config.range,
             tooltips: true,
             connect: config.connect || [true, false],
-            padding: config.padding || [0, 0], // Disable edges
+            padding: config.padding || [0, 0],
             format: {
                 to: value => Math.round(value),
                 from: value => Number(value)
             }
         });
-
-        // Store original values
         originalValues.set(slider, slider.noUiSlider.get());
-
-        // Update corresponding input when slider changes
         if (Array.isArray(config.inputIds)) {
             slider.noUiSlider.on("update", function (values) {
                 config.inputIds.forEach((inputId, idx) => {
@@ -67,8 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById(config.inputId).value = values;
             });
         }
-
-        // Update slider when input changes
         if (Array.isArray(config.inputIds)) {
             config.inputIds.forEach((inputId, idx) => {
                 document.getElementById(inputId).addEventListener("input", function () {
@@ -85,313 +74,247 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Store initial values for inputs
     myinputs.forEach(input => {
         originalValues.set(input, input.type === "checkbox" || input.type === "radio" ? input.checked : input.value);
     });
-    originalValues.set(priceperkwh, priceperkwh.value); // Add the new input's initial value
 
     function checkChanges() {
         let changed = false;
-
-        // Check all inputs
         myinputs.forEach(input => {
             if (originalValues.get(input) !== (input.type === "checkbox" || input.type === "radio" ? input.checked : input.value)) {
                 changed = true;
             }
         });
-
-        // Explicitly check priceperkwh
-        if (originalValues.get(priceperkwh) !== priceperkwh.value) {
-            changed = true;
-        }
-
-        // Check sliders
         sliders.forEach(slider => {
             if (JSON.stringify(slider.noUiSlider.get()) !== JSON.stringify(originalValues.get(slider))) {
                 changed = true;
             }
         });
-
-        // Show or hide the submit button
         if (changed) {
             if (submitBtn.style.display === "none" || submitBtn.style.display === "") {
-                submitBtn.style.display = "block"; // Ensure it's visible
+                submitBtn.style.display = "block";
                 requestAnimationFrame(() => {
-                    submitBtn.style.opacity = "1"; // Fade in
-                    submitBtn.style.transform = 'scale(1.2)'; // Scale in
+                    submitBtn.style.opacity = "1";
+                    submitBtn.style.transform = 'scale(1.2)';
                 });
             } else {
                 submitBtn.style.opacity = "1";
-                submitBtn.style.transform = 'scale(1.2)'; // Scale in
+                submitBtn.style.transform = 'scale(1.2)';
             }
         } else {
-            submitBtn.style.opacity = "0"; // Fade out
-            submitBtn.style.transform = 'scale(1)'; // Scale out
+            submitBtn.style.opacity = "0";
+            submitBtn.style.transform = 'scale(1)';
         }
     }
 
-    // Add event listeners to inputs
     myinputs.forEach(input => input.addEventListener("input", checkChanges));
-    priceperkwh.addEventListener("input", checkChanges); // Add listener for the new input
     sliders.forEach(slider => slider.noUiSlider.on("update", checkChanges));
-});
 
-
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('settings');
-    const submitBtn = document.getElementById('submitBtn');
+    // --- Form submission and overlay ---
     const overlay = document.getElementById('overlay');
-  
-    if (!form || !submitBtn || !overlay) {
-      console.error('Required elements not found.');
-      return;
+    if (form && submitBtn && overlay) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            submitBtn.style.display = 'none';
+            overlay.classList.add('reveal');
+            submitBtn.disabled = true;
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error(`Server responded with status ${response.status}`);
+                    return response.text();
+                })
+                .then(data => {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 300);
+                })
+                .catch(error => {
+                    console.error('Form submission error:', error);
+                    overlay.classList.remove('reveal');
+                    submitBtn.style.display = 'block';
+                    submitBtn.disabled = false;
+                });
+        });
     }
-  
-    // Display overlay when form is submitted
-    form.addEventListener('submit', function (event) {
-      event.preventDefault(); // Prevent default form submission
-  
-      // Hide the submit button
-      submitBtn.style.display = 'none';
-  
-      // Display the overlay and spinner
-      overlay.classList.add('reveal');
-      submitBtn.disabled = true;
-  
-      const formData = new FormData(form);
-  
-      fetch(form.action, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Server responded with status ${response.status}`);
-          }
-          return response.text(); // Adjust based on your server's response format
-        })
-        .then(data => {
-          // Reload the page after a brief pause (optional for smoother transition)
-          setTimeout(() => {
-            window.location.reload();
-          }, 300); // Feel free to tweak the delay
-        })
-        .catch(error => {
-          console.error('Form submission error:', error);
-          overlay.classList.remove('reveal');
-          submitBtn.style.display = 'block';
-          submitBtn.disabled = false;
-          // Optional: Display an error message to the user
+
+    // --- Temperature Toggle Switcher ---
+    const celciusRadio = document.getElementById("celcius");
+    const fahrenheitRadio = document.getElementById("fahrenheit");
+    const cel = document.getElementById("cel");
+    const fah = document.getElementById("fah");
+    function tempToggleBoxes() {
+        cel.style.display = celciusRadio.checked ? "block" : "none";
+        fah.style.display = fahrenheitRadio.checked ? "block" : "none";
+    }
+    document.querySelectorAll('.temp-toggles .radio-input').forEach(radio => {
+        radio.addEventListener('change', tempToggleBoxes);
+    });
+    tempToggleBoxes();
+
+    // --- DST Toggle Switcher ---
+    const summerRadio = document.getElementById("summer");
+    const winterRadio = document.getElementById("winter");
+    const sumR = document.getElementById("sumR");
+    const wintR = document.getElementById("wintR");
+    function dstToggleBoxes() {
+        sumR.style.display = summerRadio.checked ? "block" : "none";
+        wintR.style.display = winterRadio.checked ? "block" : "none";
+    }
+    document.querySelectorAll('.dst-toggles .radio-input').forEach(radio => {
+        radio.addEventListener('change', dstToggleBoxes);
+    });
+    dstToggleBoxes();
+
+    // --- Tab Panel Logic ---
+    (function() {
+        var e = document.querySelectorAll(".tab_panel"),
+            t = document.querySelectorAll(".tab_heading"),
+            i = [].slice.call(e);
+        function n(e, i) {
+            i.forEach(function(i, n, o) {
+                i !== e ? (i.setAttribute("aria-hidden", !0), t[n].setAttribute("aria-selected", !1)) : (i.setAttribute("aria-hidden", !1), t[n].setAttribute("aria-selected", !0));
+            });
+        }
+        function o(e) {
+            var t = e.target.getAttribute("aria-controls");
+            n(document.querySelector("#" + t), i), localStorage.setItem("lastTab", t);
+        }
+        t.forEach(function(e, t, i) {
+            e.addEventListener("click", o);
+        });
+        if (localStorage.length > 0) n(document.getElementById(localStorage.getItem("lastTab")), i);
+    })();
+
+    // --- Accordion ---
+    const accordionBtns = document.querySelectorAll(".accordion");
+    accordionBtns.forEach((accordion) => {
+        accordion.onclick = function () {
+            this.classList.toggle("is-open");
+            let content = this.nextElementSibling;
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        };
+    });
+
+    // --- Tab Swipe Support ---
+    const fanenContent = document.querySelector('.fanen-content');
+    const faner = document.querySelectorAll('.fanen');
+    const tabIndicator = document.querySelector('.fanen-indicator');
+    faner.forEach((fanen, index) => {
+        fanen.addEventListener('click', () => {
+            faner.forEach(t => t.classList.remove('active'));
+            fanen.classList.add('active');
+            if (index === 0) {
+                switchToTab(1);
+            } else {
+                switchToTab(2);
+            }
         });
     });
-  });
-// Temperature Toggle Switcher
-const celciusRadio = document.getElementById("celcius");
-const fahrenheitRadio = document.getElementById("fahrenheit");
-
-const cel = document.getElementById("cel");
-const fah = document.getElementById("fah");
-
-function tempToggleBoxes() {
-    cel.style.display = celciusRadio.checked ? "block" : "none";
-    fah.style.display = fahrenheitRadio.checked ? "block" : "none";
-}
-
-document.querySelectorAll('.temp-toggles .radio-input').forEach(radio => {
-    radio.addEventListener('change', tempToggleBoxes);
-});
-// Initialize correct box visibility on page load
-tempToggleBoxes();
-
-// DST Toggle Switcher
-const summerRadio = document.getElementById("summer");
-const winterRadio = document.getElementById("winter");
-
-const sumR = document.getElementById("sumR");
-const wintR = document.getElementById("wintR");
-
-function dstToggleBoxes() {
-    sumR.style.display = summerRadio.checked ? "block" : "none";
-    wintR.style.display = winterRadio.checked ? "block" : "none";
-}
-
-document.querySelectorAll('.dst-toggles .radio-input').forEach(radio => {
-    radio.addEventListener('change', dstToggleBoxes);
-});
-// Initialize correct box visibility on page load
-dstToggleBoxes();
-
-
-! function() {
-    "use strict";
-    document.getElementById("tabs");
-    var e = document.querySelectorAll(".tab_panel"),
-        t = document.querySelectorAll(".tab_heading"),
-        i = [].slice.call(e);
-    [].slice.call(t);
-
-    function n(e, i) {
-        i.forEach((function(i, n, o) {
-            i !== e ? (i.setAttribute("aria-hidden", !0), t[n].setAttribute("aria-selected", !1)) : (i.setAttribute("aria-hidden", !1), t[n].setAttribute("aria-selected", !0))
-        }))
+    let startX = 0, currentX = 0, startY = 0, isSwiping = false, hasDragged = false, dragThreshold = 20;
+    function startSwipe(e) {
+        startX = e.touches ? e.touches[0].clientX : e.clientX;
+        startY = e.touches ? e.touches[0].clientY : e.clientY;
+        isSwiping = true;
+        hasDragged = false;
+    }
+    function moveSwipe(e) {
+        if (!isSwiping) return;
+        currentX = e.touches ? e.touches[0].clientX : e.clientX;
+        const diffX = currentX - startX;
+        const diffY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
+        if (Math.abs(diffX) > dragThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+            hasDragged = true;
+            e.preventDefault();
+            fanenContent.style.transition = 'none';
+            fanenContent.style.transform = `translateX(${getCurrentOffset() + diffX}px)`;
+        }
+    }
+    function endSwipe(e) {
+        if (!isSwiping) return;
+        const diffX = currentX - startX;
+        if (hasDragged) {
+            if (diffX > 50) {
+                switchToTab(1);
+            } else if (diffX < -50) {
+                switchToTab(2);
+            } else {
+                resetPosition();
+            }
+        }
+        isSwiping = false;
+        hasDragged = false;
+    }
+    fanenContent && fanenContent.addEventListener('touchstart', startSwipe, { passive: false });
+    fanenContent && fanenContent.addEventListener('touchmove', moveSwipe, { passive: false });
+    fanenContent && fanenContent.addEventListener('touchend', endSwipe);
+    fanenContent && fanenContent.addEventListener('pointerdown', startSwipe);
+    fanenContent && fanenContent.addEventListener('pointermove', moveSwipe);
+    fanenContent && fanenContent.addEventListener('pointerup', endSwipe);
+    function switchToTab(tabNumber) {
+        if (!fanenContent) return;
+        if (tabNumber === 1) {
+            fanenContent.classList.remove('tab2-active');
+            fanenContent.classList.add('tab1-active');
+            tabIndicator && (tabIndicator.style.transform = 'translateX(0)');
+        } else {
+            fanenContent.classList.remove('tab1-active');
+            fanenContent.classList.add('tab2-active');
+            tabIndicator && (tabIndicator.style.transform = 'translateX(100%)');
+        }
+        fanenContent.style.transition = 'transform 0.2s ease-in-out';
+        fanenContent.style.transform = getCurrentOffset() === 0 ? 'translateX(0)' : 'translateX(-50%)';
+    }
+    function getCurrentOffset() {
+        return fanenContent && fanenContent.classList.contains('tab1-active') ? 0 : -fanenContent.clientWidth / 2;
+    }
+    function resetPosition() {
+        if (!fanenContent) return;
+        fanenContent.style.transition = 'transform 0.2s ease-in-out';
+        fanenContent.style.transform = getCurrentOffset() === 0 ? 'translateX(0)' : 'translateX(-50%)';
     }
 
-    function o(e) {
-        var t = e.target.getAttribute("aria-controls");
-        n(document.querySelector("#" + t), i), localStorage.setItem("lastTab", t)
-    }(t.forEach((function(e, t, i) {
-        e.addEventListener("click", o)
-    })), localStorage.length > 0) && n(document.getElementById(localStorage.getItem("lastTab")), i)
-}();
-
-
-function removeSpaces(string){return string.split(' ').join('');}
-function removeSpaceAfterComma(string){return string.replace(", ", ",");}
-
-Date.prototype.stdTimezoneOffset = function () {
-    var jan = new Date(this.getFullYear(), 0, 1);
-    var jul = new Date(this.getFullYear(), 6, 1);
-    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
-}  
-
-Date.prototype.isDstObserved = function () {
-    return this.getTimezoneOffset() < this.stdTimezoneOffset();
-}
-/*
-var today = new Date();
-if (today.isDstObserved()) { 
-    dst.classList.add("show");
-}
-*/
-
-function update(){Math.floor((new Date).getTime()/1e3);document.body.className="darkmode",requestAnimationFrame(update)}requestAnimationFrame(update);
-
-const accordionBtns = document.querySelectorAll(".accordion");
-accordionBtns.forEach((accordion) => {
-    accordion.onclick = function () {
-        this.classList.toggle("is-open");
-        let content = this.nextElementSibling;
-        console.log(content);
-        if (content.style.maxHeight) {
-            content.style.maxHeight = null;
-        } else {
-            content.style.maxHeight = content.scrollHeight + "px";
-            console.log(content.style.maxHeight);
-        }
+    // --- Utility Functions ---
+    function removeSpaces(string){return string.split(' ').join('');}
+    function removeSpaceAfterComma(string){return string.replace(", ", ",");}
+    Date.prototype.stdTimezoneOffset = function () {
+        var jan = new Date(this.getFullYear(), 0, 1);
+        var jul = new Date(this.getFullYear(), 6, 1);
+        return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
     };
-});
+    Date.prototype.isDstObserved = function () {
+        return this.getTimezoneOffset() < this.stdTimezoneOffset();
+    };
+    function update(){Math.floor((new Date).getTime()/1e3);document.body.className="darkmode",requestAnimationFrame(update);}requestAnimationFrame(update);
 
-const fanenContent = document.querySelector('.fanen-content');
-const faner = document.querySelectorAll('.fanen');
-const tabIndicator = document.querySelector('.fanen-indicator');
-
-faner.forEach((fanen, index) => {
-    fanen.addEventListener('click', () => {
-        faner.forEach(t => t.classList.remove('active'));
-        fanen.classList.add('active');
-
-        if (index === 0) {
-            switchToTab(1);
-        } else {
-            switchToTab(2);
-        }
+    // --- Accordion (again, for safety) ---
+    const accordionBtns2 = document.querySelectorAll(".accordion");
+    accordionBtns2.forEach((accordion) => {
+        accordion.onclick = function () {
+            this.classList.toggle("is-open");
+            let content = this.nextElementSibling;
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        };
     });
-});
 
-// Swipe Support
-let startX = 0;
-let currentX = 0;
-let startY = 0;
-let isSwiping = false;
-let hasDragged = false;
-let dragThreshold = 20; // Minimum movement to confirm dragging
+    // --- Card Flip Utility (if needed) ---
+    window.flipCard = function (element) {
+        const card = element.closest(".card");
+        if (card) card.classList.toggle("flip");
+    };
 
-function startSwipe(e) {
-    startX = e.touches ? e.touches[0].clientX : e.clientX;
-    startY = e.touches ? e.touches[0].clientY : e.clientY;
-    isSwiping = true;
-    hasDragged = false;
-}
-
-function moveSwipe(e) {
-    if (!isSwiping) return;
-
-    currentX = e.touches ? e.touches[0].clientX : e.clientX;
-    const diffX = currentX - startX;
-    const diffY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
-
-    // Only allow swipe when dragging beyond threshold
-    if (Math.abs(diffX) > dragThreshold && Math.abs(diffX) > Math.abs(diffY)) {
-        hasDragged = true;
-        e.preventDefault(); // Prevent vertical scrolling
-        fanenContent.style.transition = 'none';
-        fanenContent.style.transform = `translateX(${getCurrentOffset() + diffX}px)`;
-    }
-}
-
-function endSwipe(e) {
-    if (!isSwiping) return;
-
-    const diffX = currentX - startX;
-
-    // If dragging occurred, process swipe logic
-    if (hasDragged) {
-        if (diffX > 50) {
-            switchToTab(1); // Swipe Right → Show Tab 1
-        } else if (diffX < -50) {
-            switchToTab(2); // Swipe Left → Show Tab 2
-        } else {
-            resetPosition(); // Reset if swipe is too short
-        }
-    }
-
-    isSwiping = false;
-    hasDragged = false;
-}
-
-fanenContent.addEventListener('touchstart', startSwipe, { passive: false });
-fanenContent.addEventListener('touchmove', moveSwipe, { passive: false });
-fanenContent.addEventListener('touchend', endSwipe);
-
-fanenContent.addEventListener('pointerdown', startSwipe);
-fanenContent.addEventListener('pointermove', moveSwipe);
-fanenContent.addEventListener('pointerup', endSwipe);
-
-// Utility Functions
-function switchToTab(tabNumber) {
-    if (tabNumber === 1) {
-        fanenContent.classList.remove('tab2-active');
-        fanenContent.classList.add('tab1-active');
-        tabIndicator.style.transform = 'translateX(0)';
-    } else {
-        fanenContent.classList.remove('tab1-active');
-        fanenContent.classList.add('tab2-active');
-        tabIndicator.style.transform = 'translateX(100%)';
-    }
-
-    fanenContent.style.transition = 'transform 0.2s ease-in-out';
-    fanenContent.style.transform = getCurrentOffset() === 0 ? 'translateX(0)' : 'translateX(-50%)';
-}
-
-function getCurrentOffset() {
-    return fanenContent.classList.contains('tab1-active') ? 0 : -fanenContent.clientWidth / 2;
-}
-
-function resetPosition() {
-    fanenContent.style.transition = 'transform 0.2s ease-in-out';
-    fanenContent.style.transform = getCurrentOffset() === 0 ? 'translateX(0)' : 'translateX(-50%)';
-}
-
-function flipCard(element) {
-    const card = element.closest(".card");
-    if (card) {
-        card.classList.toggle("flip");
-    }
-}
-
-// OpenWeatherMap Sunrise/Sunset Widget
-document.addEventListener('DOMContentLoaded', function() {
+    // --- OpenWeatherMap Sunrise/Sunset Widget ---
     function initOpenWeatherWidget() {
         const locationInput = document.getElementById('location');
         const apiKeyInput = document.getElementById('apikey');
@@ -666,257 +589,105 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     initOpenWeatherWidget();
+
+    // --- Price Dial Logic ---
+    (() => {
+        const dial = document.getElementById('dial');
+        const displayPricePerKwh = document.getElementById('display-priceperkwh');
+        const hiddenPricePerKwh = document.getElementById('priceperkwh');
+        if (!dial || !displayPricePerKwh || !hiddenPricePerKwh) return;
+        const tickWidth = 30;
+        const step = 0.01;
+        const maxValue = 1.0;
+        const totalTicks = Math.round(maxValue / step) + 1;
+        const repeatCount = 3;
+        const totalTicksRepeated = totalTicks * repeatCount;
+        function createTicks() {
+            for (let r = 0; r < repeatCount; r++) {
+                for (let i = 0; i < totalTicks; i++) {
+                    const tick = document.createElement('div');
+                    tick.className = 'tick';
+                    const value = i * step;
+                    if (i % 5 === 0) {
+                        tick.textContent = value.toFixed(2);
+                    } else {
+                        tick.classList.add('hide-label');
+                    }
+                    dial.appendChild(tick);
+                }
+            }
+        }
+        const dialWidth = totalTicksRepeated * tickWidth;
+        dial.style.width = dialWidth + 'px';
+        function mod(n, m) {
+            return ((n % m) + m) % m;
+        }
+        function updateValueFromTranslateX(translateX) {
+            let normalizedX = mod(-translateX - (totalTicks * tickWidth), dialWidth);
+            const containerWidth = 320;
+            let centerOffsetPx = normalizedX + containerWidth / 2;
+            centerOffsetPx = mod(centerOffsetPx, dialWidth);
+            let tickIndex = Math.round(centerOffsetPx / tickWidth);
+            tickIndex = tickIndex % totalTicks;
+            if (tickIndex < 0) tickIndex += totalTicks;
+            const value = tickIndex * step;
+            displayPricePerKwh.textContent = value.toFixed(2);
+            hiddenPricePerKwh.value = value.toFixed(2);
+            hiddenPricePerKwh.dispatchEvent(new Event('input', { bubbles: true }));
+            const targetCenterOffsetPx = tickIndex * tickWidth - containerWidth / 2;
+            const offsetWithRepeats = -targetCenterOffsetPx - (totalTicks * tickWidth);
+            dial.style.transform = `translateX(${offsetWithRepeats}px)`;
+            currentTranslateX = offsetWithRepeats;
+            return tickIndex;
+        }
+        function initializeDial() {
+            const initialValue = parseFloat(hiddenPricePerKwh.value) || 0;
+            const initialTickIndex = Math.round(initialValue / step);
+            const containerWidth = 320;
+            const targetCenterOffsetPx = initialTickIndex * tickWidth - containerWidth / 2;
+            const offsetWithRepeats = -targetCenterOffsetPx - (totalTicks * tickWidth);
+            currentTranslateX = offsetWithRepeats;
+            dial.style.transform = `translateX(${currentTranslateX}px)`;
+            updateValueFromTranslateX(currentTranslateX);
+        }
+        let currentTranslateX = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startTranslateX = 0;
+        function onDragStart(e) {
+            isDragging = true;
+            startX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            startTranslateX = currentTranslateX;
+            dial.style.transition = 'none';
+            e.preventDefault();
+        }
+        function onDragMove(e) {
+            if (!isDragging) return;
+            const currentX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            const dx = currentX - startX;
+            currentTranslateX = startTranslateX + dx;
+            dial.style.transform = `translateX(${currentTranslateX}px)`;
+            updateValueFromTranslateX(currentTranslateX);
+        }
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            let tickIndex = updateValueFromTranslateX(currentTranslateX);
+            const containerWidth = 320;
+            let targetCenterOffsetPx = tickIndex * tickWidth - containerWidth / 2;
+            targetCenterOffsetPx += totalTicks * tickWidth;
+            currentTranslateX = -targetCenterOffsetPx;
+            dial.style.transition = 'transform 0.3s ease-out';
+            dial.style.transform = `translateX(${currentTranslateX}px)`;
+        }
+        createTicks();
+        initializeDial();
+        dial.addEventListener('mousedown', onDragStart);
+        dial.addEventListener('touchstart', onDragStart, { passive: false });
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
+        updateValueFromTranslateX(currentTranslateX);
+    })();
 });
-
-  function loadSystemInfo() {
-    fetch('/system-info')
-      .then(res => res.json())
-      .then(info => {
-        const freeHeap = info.freeHeap;         // bytes
-        const frag = info.heapFragmentation;    // percent
-        const maxBlock = info.maxFreeBlockSize;  // bytes
-        const uptime = info.uptime;              // optional uptime field
-  
-        const maxHeap = 50000; // Estimated max heap (adjust if needed)
-  
-        // Calculate scaled percentages
-        const heapPercent = Math.min((freeHeap / maxHeap) * 100, 100);
-        const fragPercent = Math.min((frag / 50) * 100, 100);
-        const blockPercent = Math.min((maxBlock / maxHeap) * 100, 100);
-  
-        // Update Free Heap bar
-        const heapFill = document.getElementById('heapFill');
-        heapFill.style.height = `${heapPercent}%`;
-        document.getElementById('heapValue').textContent = (freeHeap / 1024).toFixed(1) + 'kb';
-  
-        // Update Fragmentation bar
-        const fragFill = document.getElementById('fragFill');
-        fragFill.style.height = `${fragPercent}%`;
-        document.getElementById('fragValue').textContent = frag + '%';
-  
-        if (frag > 50) {
-          fragFill.style.background = 'linear-gradient(to top, #f44336, #e57373)'; // Red
-        } else if (frag > 30) {
-          fragFill.style.background = 'linear-gradient(to top, #ff9800, #ffc107)'; // Yellow
-        } else {
-          fragFill.style.background = '#00FFFF'; // Cyan/green normal
-        }
-  
-        // Update Max Free Block bar
-        const blockFill = document.getElementById('blockFill');
-        blockFill.style.height = `${blockPercent}%`;
-        document.getElementById('blockValue').textContent = (maxBlock / 1024).toFixed(1) + 'kb';
-  
-        // Update Memory Status
-        const memoryStatus = document.getElementById('memoryStatusText');
-        if (frag > 50) {
-          memoryStatus.textContent = 'Poor';
-          memoryStatus.style.color = 'red';
-        } else if (frag > 30) {
-          memoryStatus.textContent = 'Warning';
-          memoryStatus.style.color = 'orange';
-        } else {
-          memoryStatus.textContent = 'Excellent';
-          memoryStatus.style.color = '#ffffff';
-        }
-  
-        // ✅ Now adjust bar labels AFTER all fills are set
-        adjustBarLabels();
-      })
-      .catch(err => console.error(err));
-  }
-  
-  function adjustBarLabels() {
-    const allBars = document.querySelectorAll('.bar-fill');
-  
-    allBars.forEach(bar => {
-      const label = bar.querySelector('.bar-value');
-      const barHeight = bar.offsetHeight;
-  
-      if (barHeight < 30) {
-        // If the bar is very short, float label above
-        label.style.position = 'absolute';
-        label.style.bottom = '100%';
-        label.style.marginBottom = '5px';
-        label.style.color = 'white';
-      } else {
-        // Normal tall bar: label inside
-        label.style.position = 'static';
-        label.style.marginBottom = '5px';
-        label.style.color = 'black';
-      }
-    });
-  }
-
-   // JavaScript to toggle the accordion open and closed
-   const accordion = document.querySelector('.accordion');
-   const header = accordion.querySelector('.accordion-header');
-
-   header.addEventListener('click', () => {
-     const content = accordion.querySelector('.accordion-content');
-     accordion.classList.toggle('open');
-
-     // Manually handle max-height transition on open/close
-     if (accordion.classList.contains('open')) {
-       content.style.maxHeight = content.scrollHeight + 'px'; // Set max-height to content's natural height
-     } else {
-       content.style.maxHeight = '0'; // Collapse content smoothly
-     }
-   });
-
-function fetchUptimeHistory() {
-  fetch("/uptime-history")
-    .then(res => res.json())
-    .then(data => {
-      const container = document.querySelector(".bar-container");
-      container.innerHTML = "";
-
-      const max = Math.max(...data.days);
-      const avg = data.avg;
-      const lastWeekAvg = parseInt(localStorage.getItem("lastWeekAvg") || avg);
-      localStorage.setItem("lastWeekAvg", avg);
-
-      data.days.forEach(min => {
-        const bar = document.createElement("div");
-        bar.className = "bar";
-        bar.style.height = (min / max * 100) + "%";
-        bar.dataset.min = min;
-        container.appendChild(bar);
-      });
-
-      const diff = avg - lastWeekAvg;
-      const diffText = diff === 0 ? "No change from last week." :
-                       diff > 0 ? `Up by ${diff} minutes.` : `Down by ${Math.abs(diff)} minutes.`;
-      document.querySelector(".summary").textContent = `Weekly avg: ${avg} min — ${diffText}`;
-    });
-}
-
-document.addEventListener("DOMContentLoaded", fetchUptimeHistory);
-
-(() => {
-    const dial = document.getElementById('dial');
-    const displayPricePerKwh = document.getElementById('display-priceperkwh');
-    const hiddenPricePerKwh = document.getElementById('priceperkwh');
-  
-    const tickWidth = 30; // px between ticks
-    const step = 0.01;    // Increment per tick
-    const maxValue = 1.0; // Maximum value (adjust as needed)
-    const totalTicks = Math.round(maxValue / step) + 1;
-  
-    const repeatCount = 3;
-    const totalTicksRepeated = totalTicks * repeatCount;
-  
-    function createTicks() {
-      for (let r = 0; r < repeatCount; r++) {
-        for (let i = 0; i < totalTicks; i++) {
-          const tick = document.createElement('div');
-          tick.className = 'tick';
-          const value = i * step;
-  
-          if (i % 5 === 0) {
-            tick.textContent = value.toFixed(2); // Label every 5th tick
-          } else {
-            tick.classList.add('hide-label');
-          }
-          dial.appendChild(tick);
-        }
-      }
-    }
-  
-    const dialWidth = totalTicksRepeated * tickWidth;
-    dial.style.width = dialWidth + 'px';
-  
-    function mod(n, m) {
-      return ((n % m) + m) % m;
-    }
-  
-    function updateValueFromTranslateX(translateX) {
-    let normalizedX = mod(-translateX - (totalTicks * tickWidth), dialWidth);
-  
-    const containerWidth = 320;
-    let centerOffsetPx = normalizedX + containerWidth / 2;
-    centerOffsetPx = mod(centerOffsetPx, dialWidth);
-  
-    let tickIndex = Math.round(centerOffsetPx / tickWidth);
-    tickIndex = tickIndex % totalTicks;
-  
-    // Ensure seamless looping by resetting translateX to its equivalent position
-    if (tickIndex < 0) tickIndex += totalTicks;
-    const value = tickIndex * step;
-  
-    // Update the hidden value and display
-    displayPricePerKwh.textContent = value.toFixed(2);
-    hiddenPricePerKwh.value = value.toFixed(2);
-  
-    // Adjust translateX to keep the dial centered for seamless looping
-    const targetCenterOffsetPx = tickIndex * tickWidth - containerWidth / 2;
-    const offsetWithRepeats = -targetCenterOffsetPx - (totalTicks * tickWidth);
-    dial.style.transform = `translateX(${offsetWithRepeats}px)`;
-  
-    currentTranslateX = offsetWithRepeats;
-    return tickIndex;
-  }
-  
-  
-    function initializeDial() {
-      const initialValue = parseFloat(hiddenPricePerKwh.value) || 0;
-      const initialTickIndex = Math.round(initialValue / step);
-  
-      const containerWidth = 320;
-      const targetCenterOffsetPx = initialTickIndex * tickWidth - containerWidth / 2;
-      const offsetWithRepeats = -targetCenterOffsetPx - (totalTicks * tickWidth);
-  
-      currentTranslateX = offsetWithRepeats;
-      dial.style.transform = `translateX(${currentTranslateX}px)`;
-  
-      updateValueFromTranslateX(currentTranslateX);
-    }
-  
-    let currentTranslateX = 0;
-    let isDragging = false;
-    let startX = 0;
-    let startTranslateX = 0;
-  
-    function onDragStart(e) {
-      isDragging = true;
-      startX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
-      startTranslateX = currentTranslateX;
-      dial.style.transition = 'none';
-      e.preventDefault();
-    }
-  
-    function onDragMove(e) {
-      if (!isDragging) return;
-      const currentX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
-      const dx = currentX - startX;
-      currentTranslateX = startTranslateX + dx;
-      dial.style.transform = `translateX(${currentTranslateX}px)`;
-      updateValueFromTranslateX(currentTranslateX);
-    }
-  
-    function onDragEnd() {
-      if (!isDragging) return;
-      isDragging = false;
-  
-      let tickIndex = updateValueFromTranslateX(currentTranslateX);
-      const containerWidth = 320;
-      let targetCenterOffsetPx = tickIndex * tickWidth - containerWidth / 2;
-      targetCenterOffsetPx += totalTicks * tickWidth;
-  
-      currentTranslateX = -targetCenterOffsetPx;
-      dial.style.transition = 'transform 0.3s ease-out';
-      dial.style.transform = `translateX(${currentTranslateX}px)`;
-    }
-  
-    createTicks();
-    initializeDial();
-  
-    dial.addEventListener('mousedown', onDragStart);
-    dial.addEventListener('touchstart', onDragStart, { passive: false });
-    window.addEventListener('mousemove', onDragMove);
-    window.addEventListener('touchmove', onDragMove, { passive: false });
-    window.addEventListener('mouseup', onDragEnd);
-    window.addEventListener('touchend', onDragEnd);
-  
-    updateValueFromTranslateX(currentTranslateX);
-  })();
